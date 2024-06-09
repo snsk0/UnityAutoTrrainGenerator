@@ -1,2 +1,2 @@
-# UnityAutoTrrainGenerator
+# UnityAutoTerrainGenerator
 Developing

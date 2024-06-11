@@ -35,8 +35,8 @@ namespace AutoTerrainGenerator.Editor
             if (_isFoldHeightMap)
             {
                 _scale.x = EditorGUILayout.FloatField(new GUIContent("横幅", "HeightMapの横幅を設定します"), _scale.x);
-                _scale.y = EditorGUILayout.FloatField(new GUIContent("奥行", "HeightMapの奥行を設定します"), _scale.y);
-                _scale.z = EditorGUILayout.FloatField(new GUIContent("高さ", "HeightMapの高さを設定します"), _scale.z);
+                _scale.z = EditorGUILayout.FloatField(new GUIContent("奥行", "HeightMapの奥行を設定します"), _scale.z);
+                _scale.y = EditorGUILayout.FloatField(new GUIContent("高さ", "HeightMapの高さを設定します"), _scale.y);
 
                 EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_resolution)),
                     new GUIContent("解像度", "HeightMapの解像度を設定します"));

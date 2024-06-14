@@ -7,6 +7,6 @@ Developing<br>
 
 ### 使い方
 - Window -> AutoTerrainGenerator を選択する。
-- AutoTerrainGenerator から設定値を設定し、「テレインを生成する」を押す
+- AutoTerrainGenerator から設定値を設定し、「テレインを生成する」を押す<br>
 ![ATG_1](https://github.com/snsk0/ImageRepository/blob/main/ATG_1.png)
 ![ATG_2](https://github.com/snsk0/ImageRepository/blob/main/ATG_2.png)

@@ -1,5 +1,5 @@
 # UnityAutoTerrainGenerator
-Developing<br>
+※開発中につきテストコードが含まれています<br>
 
 ### 概要
 - 地形の自動生成を主目的としたツールです<br>

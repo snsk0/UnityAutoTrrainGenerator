@@ -24,6 +24,7 @@ namespace AutoTerrainGenerator.Editor
         [SerializeField] private string _assetPath = "Assets";
         private Vector3 _scale;
         private int _selectedResolutionEx;
+        [SerializeField] private float _step;
 
 
         [MenuItem("Window/AutoTerrainGenerator")]
@@ -92,6 +93,9 @@ namespace AutoTerrainGenerator.Editor
                     new GUIContent("2049×2049"),
                     new GUIContent("4097×4097"),
                 });
+
+                EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_step)),
+                            new GUIContent("離散値", "HeightMapを離散化します\n0以上の数値に設定することで機能します"));
             }
 
             _isFoldAsset = EditorGUILayout.Foldout(_isFoldAsset, "Assets");
@@ -132,7 +136,7 @@ namespace AutoTerrainGenerator.Editor
 
             if (GUILayout.Button(new GUIContent("テレインを生成する", "設定値からテレインを生成します")))
             {
-                var data = TerrainGenerator.Generate(_scale, _selectedResolutionEx + MinResolutionEx, _noiseScale, _seed, _octaves, _persistance);
+                var data = TerrainGenerator.Generate(_scale, _selectedResolutionEx + MinResolutionEx, _noiseScale, _seed, _octaves, _persistance, _step);
 
                 if (_isCreateAsset)
                 {

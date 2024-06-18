@@ -4,7 +4,7 @@ namespace AutoTerrainGenerator
 {
     public static class TerrainGenerator
     {
-        public static TerrainData Generate(Vector3 scale, int resolutionEx, float noiseScale, int seed, int octaves, float persistance)
+        public static TerrainData Generate(Vector3 scale, int resolutionEx, float noiseScale, int seed, int octaves, float persistance, float step)
         {
             int resolution = (int)Mathf.Pow(2, resolutionEx) + 1;
 
@@ -59,6 +59,19 @@ namespace AutoTerrainGenerator
 
                             heightMap[x, y] += height * heightScale;
                         }
+                    }
+                }
+            }
+
+            //—£ŽU‰»‚·‚é
+            if(step > 0)
+            {
+                for (int x = 0; x < resolution; x++)
+                {
+                    for (int y = 0; y < resolution; y++)
+                    {
+                        int stepRate = (int)(heightMap[x, y] / step);
+                        heightMap[x, y] = stepRate * step;
                     }
                 }
             }

@@ -41,6 +41,8 @@ namespace AutoTerrainGenerator
                     }
                 }
 
+                float maxHeight = 0f;
+
                 //オクターブの数だけノイズを重ねる
                 for (int i = 0; i < octaves; i++)
                 {
@@ -58,6 +60,24 @@ namespace AutoTerrainGenerator
                                 ((float)y / resolution) * octaveNoiseScale + octaveYInitial);
 
                             heightMap[x, y] += height * heightScale;
+
+                            //最大値の記録
+                            if (heightMap[x,y] > maxHeight)
+                            {
+                                maxHeight = heightMap[x, y];
+                            }
+                        }
+                    }
+                }
+
+                //最大値が1を超える場合のみスケーリングして納める
+                if(maxHeight > 1f)
+                {
+                    for (int x = 0; x < resolution; x++)
+                    {
+                        for (int y = 0; y < resolution; y++)
+                        {
+                            heightMap[x, y] /= maxHeight; 
                         }
                     }
                 }

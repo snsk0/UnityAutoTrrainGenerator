@@ -83,7 +83,7 @@ namespace AutoTerrainGenerator.Editor
                 _scale.z = EditorGUILayout.FloatField(new GUIContent("奥行", "HeightMapの奥行を設定します"), _scale.z);
                 _scale.y = EditorGUILayout.FloatField(new GUIContent("高さ", "HeightMapの高さを設定します"), _scale.y);
 
-                _selectedResolutionEx = EditorGUILayout.Popup(new GUIContent("解像度"), _selectedResolutionEx, new[]
+                _selectedResolutionEx = EditorGUILayout.Popup(new GUIContent("解像度", "HeightMapの解像度を設定します"), _selectedResolutionEx, new[]
                 {
                     new GUIContent("33×33"),
                     new GUIContent("65×65"),

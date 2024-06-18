@@ -18,6 +18,8 @@ namespace AutoTerrainGenerator.Editor
         private int _noiseType;
         [SerializeField] private float _noiseScale;
         [SerializeField] private int _seed;
+        [SerializeField] private int _octaves;
+        [SerializeField] private float _persistance;
         [SerializeField] private bool _isCreateAsset;
         [SerializeField] private string _assetPath = "Assets";
         private Vector3 _scale;
@@ -63,6 +65,11 @@ namespace AutoTerrainGenerator.Editor
                         EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_seed)),
                             new GUIContent("シード値", "使用するノイズのシード値を設定します"));
 
+                        EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_octaves)),
+                            new GUIContent("オクターブ", "非整数ブラウン運動を利用してオクターブの数値の回数ノイズを重ねます\n0以下に設定すると無効になります"));
+
+                        EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_persistance)),
+                            new GUIContent("影響度", "重ねるノイズの影響度を指定します\n一般的に0.5が推奨されます\nまた、必ず0以上1未満の数値を設定してください"));
                         break;
                 }
             }
@@ -125,7 +132,7 @@ namespace AutoTerrainGenerator.Editor
 
             if (GUILayout.Button(new GUIContent("テレインを生成する", "設定値からテレインを生成します")))
             {
-                var data = TerrainGenerator.Generate(_scale, _selectedResolutionEx + MinResolutionEx, _noiseScale, _seed);
+                var data = TerrainGenerator.Generate(_scale, _selectedResolutionEx + MinResolutionEx, _noiseScale, _seed, _octaves, _persistance);
 
                 if (_isCreateAsset)
                 {

@@ -19,7 +19,7 @@ namespace AutoTerrainGenerator.Editor
         [SerializeField] private float _noiseScale;
         [SerializeField] private int _seed;
         [SerializeField] private bool _isCreateAsset;
-        [SerializeField] private string _assetPath;
+        [SerializeField] private string _assetPath = "Assets";
         private Vector3 _scale;
         private int _selectedResolutionEx;
 
@@ -104,6 +104,11 @@ namespace AutoTerrainGenerator.Editor
                     {
                         _assetPath = EditorUtility.OpenFolderPanel("ï€ë∂êÊëIë", Application.dataPath, string.Empty);
                         string projectPath = Application.dataPath.Replace("Assets", string.Empty);
+
+                        if(_assetPath == string.Empty)
+                        {
+                            _assetPath = Application.dataPath;
+                        }
 
                         Uri basisUri = new Uri(projectPath);
                         Uri absoluteUri = new Uri(_assetPath);

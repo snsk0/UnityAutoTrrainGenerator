@@ -22,6 +22,7 @@ namespace AutoTerrainGenerator.Editor
         [SerializeField] private float _persistance;
         [SerializeField] private bool _isCreateAsset;
         [SerializeField] private string _assetPath = "Assets";
+        [SerializeField] private string _assetName = "Terrain";
         private Vector3 _scale;
         private int _selectedResolutionEx;
         [SerializeField] private float _step;
@@ -106,6 +107,9 @@ namespace AutoTerrainGenerator.Editor
 
                 if (_isCreateAsset)
                 {
+                    EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_assetName)),
+                        new GUIContent("ファイル名", "保存するTerrain Dataのファイル名を指定します"));
+
                     GUI.enabled = false;
                     EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_assetPath)),
                         new GUIContent("保存先", "Terrain Dataを保存するパスを表示します"));
@@ -140,7 +144,7 @@ namespace AutoTerrainGenerator.Editor
 
                 if (_isCreateAsset)
                 {
-                    AssetDatabase.CreateAsset(data, _assetPath + "/Terrain.asset");
+                    AssetDatabase.CreateAsset(data, _assetPath + "/" + _assetName + ".asset");
                 }
             }
         }

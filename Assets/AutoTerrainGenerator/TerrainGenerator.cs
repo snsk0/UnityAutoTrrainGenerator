@@ -47,7 +47,7 @@ namespace AutoTerrainGenerator
                 for (int i = 0; i < octaves; i++)
                 {
                     float octaveNoiseScale = noiseScale * Mathf.Pow(2.0f, i);
-                    float heightScale = Mathf.Pow(persistance, i + 1);
+                    float heightScale = Mathf.Pow(persistance, i + 2);
 
                     float octaveXInitial = Random.Range(0f, 256f);
                     float octaveYInitial = Random.Range(0f, 256f);
@@ -66,18 +66,6 @@ namespace AutoTerrainGenerator
                             {
                                 maxHeight = heightMap[x, y];
                             }
-                        }
-                    }
-                }
-
-                //最大値が1を超える場合のみスケーリングして納める
-                if(maxHeight > 1f)
-                {
-                    for (int x = 0; x < resolution; x++)
-                    {
-                        for (int y = 0; y < resolution; y++)
-                        {
-                            heightMap[x, y] /= maxHeight; 
                         }
                     }
                 }

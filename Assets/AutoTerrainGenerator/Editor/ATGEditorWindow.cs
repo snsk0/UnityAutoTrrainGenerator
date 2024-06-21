@@ -2,30 +2,41 @@
 using System;
 using UnityEngine;
 using UnityEditor;
+using AutoTerrainGenerator.HeightMapGenerators;
 
 namespace AutoTerrainGenerator.Editor
 {
-    public class ATGEditorWindow : EditorWindow
-    {
-        private const int MinResolutionEx = 5;
-         
+    internal class ATGEditorWindow : EditorWindow
+    {         
         private SerializedObject _serializedObject;
 
-        private bool _isFoldNoise = true;
-        private bool _isFoldHeightMap = true;
-        private bool _isFoldAsset = true;
+        //GUI
+        private bool _isFoldoutNoise = true;
+        private bool _isFoldoutHeightMap = true;
+        private bool _isFoldoutAsset = true;
+        private bool _isAdvancedAmplitude = false;
 
-        private int _noiseType;
-        [SerializeField] private float _noiseScale;
-        [SerializeField] private int _seed;
-        [SerializeField] private int _octaves;
-        [SerializeField] private float _persistance;
-        [SerializeField] private bool _isCreateAsset;
-        [SerializeField] private string _assetPath = "Assets";
-        [SerializeField] private string _assetName = "Terrain";
+        //ノイズ変数
+        private int _noiseTypeIndex;
+        private float _frequency;
+        private float _maxAmplitude;
+        private float _minAmplitude;
+        private int _seed;
+        private int _octaves;
+
+        //ハイトマップ
+        private int _resolutionExp = ATGMathf.MinResolutionExp;
+
+        //テレイン
         private Vector3 _scale;
-        private int _selectedResolutionEx;
-        [SerializeField] private float _step;
+
+        //アセット
+        private bool _isCreateAsset;
+        private string _assetPath = "Assets";
+        private string _assetName = "Terrain";
+
+        //TODO 実装
+        private float _step;
 
 
         [MenuItem("Window/AutoTerrainGenerator")]
@@ -39,51 +50,78 @@ namespace AutoTerrainGenerator.Editor
             _serializedObject = new SerializedObject(this);
         }
 
+        private void OnDisable()
+        {
+            
+        }
+
         private void OnGUI()
         {
             _serializedObject.Update();
 
-            _isFoldNoise = EditorGUILayout.Foldout(_isFoldNoise, "Noise");
-            if(_isFoldNoise)
+            _isFoldoutNoise = EditorGUILayout.Foldout(_isFoldoutNoise, "Noise");
+            if(_isFoldoutNoise)
             {
-                _noiseType = EditorGUILayout.Popup(new GUIContent("ノイズ"), _noiseType, new[]
+                _noiseTypeIndex = EditorGUILayout.Popup(new GUIContent("ノイズ"), _noiseTypeIndex, new[]
                 {
                     new GUIContent("UnityEngine.Mathf.PerlinNoise")
                 });
 
-                switch(_noiseType)
+                switch(_noiseTypeIndex)
                 {
                     case 0:
-                        EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_noiseScale)),
-                            new GUIContent("スケール値", "使用するノイズのスケール値を設定します"));
+                        _seed = EditorGUILayout.IntField(new GUIContent("シード値", "シード値を設定します"), _seed);
 
+                        _frequency = EditorGUILayout.FloatField(new GUIContent("周波数", "使用するノイズの周波数を設定します"), _frequency);
                         MessageType type = MessageType.Info;
-                        if(_noiseScale > 256)
+                        if(_frequency > 256)
                         {
                             type = MessageType.Warning;
                         }
-                        EditorGUILayout.HelpBox("UnityEngine.Mathf.PerlinNoiseの周期は256なため\n256以上の数値にすると同様の地形が現れる可能性があります。", type);
+                        EditorGUILayout.HelpBox("UnityEngine.Mathf.PerlinNoiseの周期は256なため\n256以上の数値にすると同様の地形が現れる可能性があります", type);
 
-                        EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_seed)),
-                            new GUIContent("シード値", "使用するノイズのシード値を設定します"));
+                        _isAdvancedAmplitude = EditorGUILayout.Toggle(new GUIContent("高度な振幅設定", "振幅について高度な設定を有効化するかどうかを設定します"), _isAdvancedAmplitude);
 
-                        EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_octaves)),
-                            new GUIContent("オクターブ", "非整数ブラウン運動を利用してオクターブの数値の回数ノイズを重ねます\n0以下に設定すると無効になります"));
+                        if (!_isAdvancedAmplitude)
+                        {
+                            _maxAmplitude = EditorGUILayout.Slider(new GUIContent("振幅", "生成するHeightMapの振幅を設定します"),
+                                _maxAmplitude, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
+                        }
+                        else
+                        {
+                            EditorGUILayout.MinMaxSlider(new GUIContent("振幅", "生成するHeightMapの振幅を設定します"),
+                                ref _minAmplitude, ref _maxAmplitude, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
 
-                        EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_persistance)),
-                            new GUIContent("影響度", "重ねるノイズの影響度を指定します\n一般的に0.5が推奨されます\nまた、必ず0以上1未満の数値を設定してください"));
+                            GUI.enabled = false;
+                            EditorGUILayout.FloatField(new GUIContent("最低値", "振幅の最低値を表示します"), _minAmplitude);
+                            EditorGUILayout.FloatField(new GUIContent("最高値", "振幅の最高値を表示します"), _maxAmplitude);
+                            GUI.enabled = true;
+                        }
+
+                        if (_octaves > 0 && _maxAmplitude == ATGMathf.MaxTerrainHeight)
+                        {
+                            EditorGUILayout.HelpBox("オクターブを利用する場合、振幅を1未満に設定してください\n地形が正しく生成されません\n0.5が推奨されます", MessageType.Error);
+                        }
+
+                        _octaves = EditorGUILayout.IntField(new GUIContent("オクターブ", "非整数ブラウン運動を利用してオクターブの数値の回数ノイズを重ねます\n0以下に設定すると無効になります"), _octaves);
                         break;
                 }
             }
 
-            _isFoldHeightMap = EditorGUILayout.Foldout(_isFoldHeightMap, "HeightMap");
-            if (_isFoldHeightMap)
+            _isFoldoutHeightMap = EditorGUILayout.Foldout(_isFoldoutHeightMap, "HeightMap");
+            if (_isFoldoutHeightMap)
             {
                 _scale.x = EditorGUILayout.FloatField(new GUIContent("横幅", "HeightMapの横幅を設定します"), _scale.x);
                 _scale.z = EditorGUILayout.FloatField(new GUIContent("奥行", "HeightMapの奥行を設定します"), _scale.z);
                 _scale.y = EditorGUILayout.FloatField(new GUIContent("高さ", "HeightMapの高さを設定します"), _scale.y);
 
-                _selectedResolutionEx = EditorGUILayout.Popup(new GUIContent("解像度", "HeightMapの解像度を設定します"), _selectedResolutionEx, new[]
+                int[] resolutionExpArray = new int[ATGMathf.ResolutionExpRange];
+                for(int i = 0; i < ATGMathf.ResolutionExpRange; i++)
+                {
+                    resolutionExpArray[i] = i + ATGMathf.MinResolutionExp;
+                }
+                _resolutionExp = EditorGUILayout.IntPopup(new GUIContent("解像度", "HeightMapの解像度を設定します"), _resolutionExp, 
+                    new[]
                 {
                     new GUIContent("33×33"),
                     new GUIContent("65×65"),
@@ -93,26 +131,20 @@ namespace AutoTerrainGenerator.Editor
                     new GUIContent("1025×1025"),
                     new GUIContent("2049×2049"),
                     new GUIContent("4097×4097"),
-                });
-
-                EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_step)),
-                            new GUIContent("離散値", "HeightMapを離散化します\n0以上の数値に設定することで機能します"));
+                }, resolutionExpArray);
             }
 
-            _isFoldAsset = EditorGUILayout.Foldout(_isFoldAsset, "Assets");
-            if (_isFoldAsset)
+            _isFoldoutAsset = EditorGUILayout.Foldout(_isFoldoutAsset, "Assets");
+            if (_isFoldoutAsset)
             {
-                EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_isCreateAsset)),
-                    new GUIContent("アセット保存", "Terrain Dataをアセットとして保存するかどうかを指定します"));
+                _isCreateAsset = EditorGUILayout.Toggle(new GUIContent("アセット保存", "Terrain Dataをアセットとして保存するかどうかを指定します"), _isCreateAsset);
 
                 if (_isCreateAsset)
                 {
-                    EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_assetName)),
-                        new GUIContent("ファイル名", "保存するTerrain Dataのファイル名を指定します"));
+                    EditorGUILayout.TextField(new GUIContent("ファイル名", "保存するTerrain Dataのファイル名を指定します"), (_assetName));
 
                     GUI.enabled = false;
-                    EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_assetPath)),
-                        new GUIContent("保存先", "Terrain Dataを保存するパスを表示します"));
+                    EditorGUILayout.TextField(new GUIContent("保存先", "Terrain Dataを保存するパスを表示します"), _assetPath);
                     GUI.enabled = true;
 
                     if(GUILayout.Button(new GUIContent("保存先を指定する", "Terrain Dataの保存するフォルダを選択します")))
@@ -125,6 +157,7 @@ namespace AutoTerrainGenerator.Editor
                             _assetPath = Application.dataPath;
                         }
 
+                        //相対パスを計算
                         Uri basisUri = new Uri(projectPath);
                         Uri absoluteUri = new Uri(_assetPath);
                         _assetPath = basisUri.MakeRelativeUri(absoluteUri).OriginalString;
@@ -140,7 +173,8 @@ namespace AutoTerrainGenerator.Editor
 
             if (GUILayout.Button(new GUIContent("テレインを生成する", "設定値からテレインを生成します")))
             {
-                var data = TerrainGenerator.Generate(_scale, _selectedResolutionEx + MinResolutionEx, _noiseScale, _seed, _octaves, _persistance, _step);
+                var map = new GeneratorByUnityPerlin().Generate(_seed, _resolutionExp, _frequency, _minAmplitude, _maxAmplitude, _octaves);
+                var data = TerrainGenerator.Generate(map, _scale);
 
                 if (_isCreateAsset)
                 {

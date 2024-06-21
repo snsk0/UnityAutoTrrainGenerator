@@ -29,6 +29,9 @@ namespace AutoTerrainGenerator.Editor
         private ATGWindowSettigs _windowSettings;
         private HeightMapGeneratorData generatorData => _windowSettings.generatorData;
 
+        [SerializeField] private HeightMapGeneratorData _inputGeneratorData;
+        private bool _canInputData => _inputGeneratorData == null;
+
         //TODO 実装
         private float _step;
 
@@ -76,6 +79,14 @@ namespace AutoTerrainGenerator.Editor
         {
             _serializedObject.Update();
 
+            //設定値の読み込み
+            EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_inputGeneratorData)), new GUIContent("設定入力"));
+
+            if (!_canInputData)
+            {
+                GUI.enabled = false;
+            }
+
             _windowSettings.isFoldoutNoise = EditorGUILayout.Foldout(_windowSettings.isFoldoutNoise, "Noise");
             if(_windowSettings.isFoldoutNoise)
             {
@@ -114,7 +125,10 @@ namespace AutoTerrainGenerator.Editor
                             EditorGUILayout.FloatField(new GUIContent("最低値", "振幅の最低値を表示します"), generatorData.minLinearScale);
                             EditorGUILayout.FloatField(new GUIContent("最高値", "振幅の最高値を表示します"), generatorData.maxLinearScale);
                             EditorGUILayout.FloatField(new GUIContent("振幅", "振幅の値を表示します"), generatorData.maxLinearScale - generatorData.minLinearScale);
-                            GUI.enabled = true;
+                            if (_canInputData)
+                            {
+                                GUI.enabled = true;
+                            }
                         }
 
                         if (generatorData.octaves > 0 && generatorData.maxLinearScale == ATGMathf.MaxTerrainHeight)
@@ -188,7 +202,15 @@ namespace AutoTerrainGenerator.Editor
                 }
             }
 
+            //更新
             _serializedObject.ApplyModifiedProperties();
+
+            //Generatorの入力があった場合反映する
+            if (_inputGeneratorData != null)
+            {
+                _windowSettings.generatorData = Instantiate(_inputGeneratorData);
+            }
+            GUI.enabled = true;
 
             if (GUILayout.Button(new GUIContent("テレインを生成する", "設定値からテレインを生成します")))
             {

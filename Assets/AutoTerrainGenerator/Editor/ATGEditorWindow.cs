@@ -44,6 +44,12 @@ namespace AutoTerrainGenerator.Editor
             if (!string.IsNullOrEmpty(windowSettings))
             {
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowSettings);
+
+                //一応対策
+                if(_windowSettings.generatorData == null)
+                {
+                    _windowSettings.generatorData = CreateInstance<HeightMapGeneratorData>();
+                }
             }
             else
             {
@@ -54,7 +60,7 @@ namespace AutoTerrainGenerator.Editor
                 _windowSettings.isCreateAsset = true;
                 _windowSettings.assetPath = "Assets";
                 _windowSettings.assetName = "Terrain";
-                _windowSettings.generatorData = new HeightMapGeneratorData();
+                _windowSettings.generatorData = CreateInstance<HeightMapGeneratorData>();
             }
 
             _serializedObject = new SerializedObject(this);
@@ -202,7 +208,11 @@ namespace AutoTerrainGenerator.Editor
                 string savePath = EditorUtility.SaveFilePanelInProject("Save", "settings", "asset", "");
                 if(!string.IsNullOrEmpty(savePath)) 
                 {
-                    AssetDatabase.CreateAsset(generatorData, savePath);
+                    //値をコピーする
+                    HeightMapGeneratorData outputGeneratorData = Instantiate(generatorData);
+
+                    //出力する
+                    AssetDatabase.CreateAsset(outputGeneratorData, savePath);
                 }
             }
         }

@@ -20,9 +20,9 @@ namespace AutoTerrainGenerator
             return (int)Mathf.Pow(ResolutionBase, resolutionExp) + 1;
         }
 
-        internal static float Scaling(float value, float minValue, float maxValue, float toMinValue, float toMaxValue)
+        internal static float LinearScaling(float value, float fromMinValue, float fromMaxValue, float toMinValue, float toMaxValue)
         {
-            return toMinValue + ((value - minValue) / (maxValue - minValue)) * (toMaxValue - toMinValue);
+            return toMinValue + ((value - fromMinValue) / (fromMaxValue - fromMinValue)) * (toMaxValue - toMinValue);
         }
 
         internal static float SignedPerlinNoise(float x, float y)

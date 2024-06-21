@@ -14,13 +14,14 @@ namespace AutoTerrainGenerator.Editor
         private bool _isFoldoutNoise = true;
         private bool _isFoldoutHeightMap = true;
         private bool _isFoldoutAsset = true;
-        private bool _isAdvancedAmplitude = false;
 
         //ノイズ変数
         private int _noiseTypeIndex;
         private float _frequency;
-        private float _maxAmplitude;
-        private float _minAmplitude;
+        private bool _isLinearScaling = false;
+        private float _amplitude;
+        private float _maxLinearScale;
+        private float _minLinearScale;
         private int _seed;
         private int _octaves;
 
@@ -80,25 +81,26 @@ namespace AutoTerrainGenerator.Editor
                         }
                         EditorGUILayout.HelpBox("UnityEngine.Mathf.PerlinNoiseの周期は256なため\n256以上の数値にすると同様の地形が現れる可能性があります", type);
 
-                        _isAdvancedAmplitude = EditorGUILayout.Toggle(new GUIContent("高度な振幅設定", "振幅について高度な設定を有効化するかどうかを設定します"), _isAdvancedAmplitude);
+                        _isLinearScaling = EditorGUILayout.Toggle(new GUIContent("線形スケーリング", "線形スケーリングを有効化します"), _isLinearScaling);
 
-                        if (!_isAdvancedAmplitude)
+                        if (!_isLinearScaling)
                         {
-                            _maxAmplitude = EditorGUILayout.Slider(new GUIContent("振幅", "生成するHeightMapの振幅を設定します"),
-                                _maxAmplitude, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
+                            _amplitude = EditorGUILayout.Slider(new GUIContent("振幅", "生成するHeightMapの振幅を設定します"),
+                                _amplitude, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
                         }
                         else
                         {
-                            EditorGUILayout.MinMaxSlider(new GUIContent("振幅", "生成するHeightMapの振幅を設定します"),
-                                ref _minAmplitude, ref _maxAmplitude, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
+                            EditorGUILayout.MinMaxSlider(new GUIContent("スケール範囲", "生成するHeightMapのスケール範囲を設定します"),
+                                ref _minLinearScale, ref _maxLinearScale, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
 
                             GUI.enabled = false;
-                            EditorGUILayout.FloatField(new GUIContent("最低値", "振幅の最低値を表示します"), _minAmplitude);
-                            EditorGUILayout.FloatField(new GUIContent("最高値", "振幅の最高値を表示します"), _maxAmplitude);
+                            EditorGUILayout.FloatField(new GUIContent("最低値", "振幅の最低値を表示します"), _minLinearScale);
+                            EditorGUILayout.FloatField(new GUIContent("最高値", "振幅の最高値を表示します"), _maxLinearScale);
+                            EditorGUILayout.FloatField(new GUIContent("振幅", "振幅の値を表示します"), _maxLinearScale - _minLinearScale);
                             GUI.enabled = true;
                         }
 
-                        if (_octaves > 0 && _maxAmplitude == ATGMathf.MaxTerrainHeight)
+                        if (_octaves > 0 && _maxLinearScale == ATGMathf.MaxTerrainHeight)
                         {
                             EditorGUILayout.HelpBox("オクターブを利用する場合、振幅を1未満に設定してください\n地形が正しく生成されません\n0.5が推奨されます", MessageType.Error);
                         }
@@ -173,8 +175,19 @@ namespace AutoTerrainGenerator.Editor
 
             if (GUILayout.Button(new GUIContent("テレインを生成する", "設定値からテレインを生成します")))
             {
-                var map = new GeneratorByUnityPerlin().Generate(_seed, _resolutionExp, _frequency, _minAmplitude, _maxAmplitude, _octaves);
-                var data = TerrainGenerator.Generate(map, _scale);
+                float[,] heightMap;
+                IHeightMapGenerator generator = new GeneratorByUnityPerlin();
+
+                if (!_isLinearScaling)
+                {
+                    heightMap = generator.Generate(_seed, _resolutionExp, _frequency, _amplitude, _octaves);
+                }
+                else
+                {
+                    heightMap = generator.Generate(_seed, _resolutionExp, _frequency, _minLinearScale, _maxLinearScale, _octaves);
+                }
+                
+                TerrainData data = TerrainGenerator.Generate(heightMap, _scale);
 
                 if (_isCreateAsset)
                 {

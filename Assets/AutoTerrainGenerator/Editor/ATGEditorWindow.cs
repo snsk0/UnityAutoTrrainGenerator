@@ -196,6 +196,15 @@ namespace AutoTerrainGenerator.Editor
                     AssetDatabase.CreateAsset(data, _windowSettings.assetPath + "/" + _windowSettings.assetName + ".asset");
                 }
             }
+
+            if (GUILayout.Button(new GUIContent("設定値を出力する", "設定値をアセットファイルに保存します")))
+            {
+                string savePath = EditorUtility.SaveFilePanelInProject("Save", "settings", "asset", "");
+                if(!string.IsNullOrEmpty(savePath)) 
+                {
+                    AssetDatabase.CreateAsset(generatorData, savePath);
+                }
+            }
         }
     }
 }

@@ -32,6 +32,8 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
                 amplitude *= ATGMathf.FBmPersistence;
             }
 
+            //このままだと0-1を基準にするが、実際のテレインは1をオーバーし0よりも最低値が低いため取得する必要がある
+            //しかし高度な振幅設定を必要としない場合これは0-1に勝手にスケーリングしてしまうため、if文での分岐が必須だと思われる(それか関数を分ける)
             for (int x = 0; x < resolution; x++)
             {
                 for (int y = 0; y < resolution; y++)

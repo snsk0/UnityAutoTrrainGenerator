@@ -4,6 +4,7 @@ namespace AutoTerrainGenerator
 {
     public static class TerrainGenerator
     {
+        /*
         public static TerrainData Generate(Vector3 scale, int resolutionEx, float noiseScale, int seed, int octaves, float persistance, float step)
         {
             int resolution = (int)Mathf.Pow(2, resolutionEx) + 1;
@@ -90,6 +91,7 @@ namespace AutoTerrainGenerator
 
             return terrainData;
         }
+        */
 
         public static TerrainData Generate(float[,] heigtMap, Vector3 scale)
         {

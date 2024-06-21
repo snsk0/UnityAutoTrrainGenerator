@@ -17,12 +17,12 @@ namespace AutoTerrainGenerator.Editor
 
         //ノイズ変数
         private int _noiseTypeIndex;
+        private int _seed;
         private float _frequency;
         private bool _isLinearScaling = false;
         private float _amplitude;
-        private float _maxLinearScale;
         private float _minLinearScale;
-        private int _seed;
+        private float _maxLinearScale;
         private int _octaves;
 
         //ハイトマップ
@@ -32,7 +32,7 @@ namespace AutoTerrainGenerator.Editor
         private Vector3 _scale;
 
         //アセット
-        private bool _isCreateAsset;
+        private bool _isCreateAsset = true;
         private string _assetPath = "Assets";
         private string _assetName = "Terrain";
 
@@ -49,11 +49,72 @@ namespace AutoTerrainGenerator.Editor
         private void OnEnable()
         {
             _serializedObject = new SerializedObject(this);
+            Debug.Log("Enable");
+
+            try
+            {
+                //設定値をデシリアライズ
+                //GUI関連
+                _isFoldoutNoise = JsonUtility.FromJson<bool>(EditorUserSettings.GetConfigValue(nameof(_isFoldoutNoise)));
+                _isFoldoutHeightMap = JsonUtility.FromJson<bool>(EditorUserSettings.GetConfigValue(nameof(_isFoldoutHeightMap)));
+                _isFoldoutAsset = JsonUtility.FromJson<bool>(EditorUserSettings.GetConfigValue(nameof(_isFoldoutAsset)));
+
+                //ノイズ関連
+                _noiseTypeIndex = JsonUtility.FromJson<int>(EditorUserSettings.GetConfigValue(nameof(_noiseTypeIndex)));
+                _seed = JsonUtility.FromJson<int>(EditorUserSettings.GetConfigValue(nameof(_seed)));
+                _frequency = JsonUtility.FromJson<float>(EditorUserSettings.GetConfigValue(nameof(_frequency)));
+                _isLinearScaling = JsonUtility.FromJson<bool>(EditorUserSettings.GetConfigValue(nameof(_isLinearScaling)));
+                _amplitude = JsonUtility.FromJson<float>(EditorUserSettings.GetConfigValue(nameof(_amplitude)));
+                _minLinearScale = JsonUtility.FromJson<float>(EditorUserSettings.GetConfigValue(nameof(_minLinearScale)));
+                _maxLinearScale = JsonUtility.FromJson<float>(EditorUserSettings.GetConfigValue(nameof(_maxLinearScale)));
+                _octaves = JsonUtility.FromJson<int>(EditorUserSettings.GetConfigValue(nameof(_octaves)));
+
+                //ハイトマップ
+                _resolutionExp = JsonUtility.FromJson<int>(EditorUserSettings.GetConfigValue(nameof(_resolutionExp)));
+
+                //テレイン
+                _scale = JsonUtility.FromJson<Vector3>(EditorUserSettings.GetConfigValue(nameof(_scale)));
+
+                //アセット
+                _isCreateAsset = JsonUtility.FromJson<bool>(EditorUserSettings.GetConfigValue(nameof(_isCreateAsset)));
+                _assetPath = JsonUtility.FromJson<string>(EditorUserSettings.GetConfigValue(nameof(_assetPath)));
+                _assetName = JsonUtility.FromJson<string>(EditorUserSettings.GetConfigValue(nameof(_assetName)));
+            }
+            catch(Exception e)
+            {
+                Debug.LogError("デシリアライズに失敗しました");
+            }
         }
 
         private void OnDisable()
         {
-            
+            Debug.Log("Disable");
+            //設定値をシリアライズして保存
+            //GUI関連
+            EditorUserSettings.SetConfigValue(nameof(_isFoldoutNoise), JsonUtility.ToJson(_isFoldoutNoise));
+            EditorUserSettings.SetConfigValue(nameof(_isFoldoutHeightMap), JsonUtility.ToJson(_isFoldoutHeightMap));
+            EditorUserSettings.SetConfigValue(nameof(_isFoldoutAsset), JsonUtility.ToJson(_isFoldoutAsset));
+
+            //ノイズ関連
+            EditorUserSettings.SetConfigValue(nameof(_noiseTypeIndex), JsonUtility.ToJson(_noiseTypeIndex));
+            EditorUserSettings.SetConfigValue(nameof(_seed), JsonUtility.ToJson(_seed));
+            EditorUserSettings.SetConfigValue(nameof(_frequency), JsonUtility.ToJson(_frequency));
+            EditorUserSettings.SetConfigValue(nameof(_isLinearScaling), JsonUtility.ToJson(_isLinearScaling));
+            EditorUserSettings.SetConfigValue(nameof(_amplitude), JsonUtility.ToJson(_amplitude));
+            EditorUserSettings.SetConfigValue(nameof(_minLinearScale), JsonUtility.ToJson(_minLinearScale));
+            EditorUserSettings.SetConfigValue(nameof(_maxLinearScale), JsonUtility.ToJson(_maxLinearScale));
+            EditorUserSettings.SetConfigValue(nameof(_octaves), JsonUtility.ToJson(_octaves));
+
+            //ハイトマップ
+            EditorUserSettings.SetConfigValue(nameof(_resolutionExp), JsonUtility.ToJson(_resolutionExp));
+
+            //テレイン
+            EditorUserSettings.SetConfigValue(nameof(_scale), JsonUtility.ToJson(_scale));
+
+            //アセット
+            EditorUserSettings.SetConfigValue(nameof(_isCreateAsset), JsonUtility.ToJson(_isCreateAsset));
+            EditorUserSettings.SetConfigValue(nameof(_assetPath), JsonUtility.ToJson(_assetPath));
+            EditorUserSettings.SetConfigValue(nameof(_assetName), JsonUtility.ToJson(_assetName));
         }
 
         private void OnGUI()
@@ -143,7 +204,7 @@ namespace AutoTerrainGenerator.Editor
 
                 if (_isCreateAsset)
                 {
-                    EditorGUILayout.TextField(new GUIContent("ファイル名", "保存するTerrain Dataのファイル名を指定します"), (_assetName));
+                    _assetName = EditorGUILayout.TextField(new GUIContent("ファイル名", "保存するTerrain Dataのファイル名を指定します"), (_assetName));
 
                     GUI.enabled = false;
                     EditorGUILayout.TextField(new GUIContent("保存先", "Terrain Dataを保存するパスを表示します"), _assetPath);

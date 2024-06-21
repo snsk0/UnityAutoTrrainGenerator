@@ -7,17 +7,25 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
     {
         private const float PerlinNoiseFrequency = 256f;
 
-        public float[,] Generate(int seed, int resolutionExp, float frequency, float amplitude, int octaves)
+        public float[,] Generate(HeightMapGeneratorData data)
         {
-            Random.InitState(seed);
+            Random.InitState(data.seed);
             float xSeed = Random.Range(0f, PerlinNoiseFrequency);
             float ySeed = Random.Range(0f, PerlinNoiseFrequency);
 
-            int resolution = ATGMathf.GetResolution(resolutionExp);
+            int resolution = ATGMathf.GetResolution(data.resolutionExp);
 
             float[,] heightMap = new float[resolution, resolution];
 
-            for (int i = 0; i <= octaves; i++)
+            float frequency = data.frequency;
+            float amplitude = data.amplitude;
+
+            if(data.isLinearScaling)
+            {
+                amplitude = ATGMathf.MaxTerrainHeight;
+            }
+
+            for (int i = 0; i <= data.octaves; i++)
             {
                 for (int x = 0; x < resolution; x++)
                 {
@@ -33,22 +41,19 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
                 amplitude *= ATGMathf.FBmPersistence;
             }
 
-            return heightMap;
-        }
-
-        public float[,] Generate(int seed, int resolutionExp, float frequency, float minLinearScale, float maxLinearScale, int octaves)
-        {
-            float[,] heightMap = Generate(seed, resolutionExp, frequency, ATGMathf.MaxTerrainHeight, octaves);
-
-            IEnumerable<float> heightEnum = heightMap.Cast<float>();
-            float minHeight = heightEnum.Min();
-            float maxHeight = heightEnum.Max();
-
-            for (int x = 0; x < heightMap.GetLength(0); x++)
+            //スケーリング
+            if(data.isLinearScaling)
             {
-                for (int y = 0; y < heightMap.GetLength(1); y++)
+                IEnumerable<float> heightEnum = heightMap.Cast<float>();
+                float minHeight = heightEnum.Min();
+                float maxHeight = heightEnum.Max();
+
+                for (int x = 0; x < heightMap.GetLength(0); x++)
                 {
-                    heightMap[x, y] = ATGMathf.LinearScaling(heightMap[x,y], minHeight, maxHeight, minLinearScale, maxLinearScale);
+                    for (int y = 0; y < heightMap.GetLength(1); y++)
+                    {
+                        heightMap[x, y] = ATGMathf.LinearScaling(heightMap[x, y], minHeight, maxHeight, data.minLinearScale, data.maxLinearScale);
+                    }
                 }
             }
 

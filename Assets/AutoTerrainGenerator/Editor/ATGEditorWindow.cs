@@ -104,7 +104,7 @@ namespace AutoTerrainGenerator.Editor
             _windowSettings.isFoldoutNoise = EditorGUILayout.Foldout(_windowSettings.isFoldoutNoise, "Noise");
             if(_windowSettings.isFoldoutNoise)
             {
-                _windowSettings.generatorData.noiseTypeIndex = EditorGUILayout.Popup(new GUIContent("ノイズ"), _windowSettings.generatorData.noiseTypeIndex, new[]
+                generatorData.noiseTypeIndex = EditorGUILayout.Popup(new GUIContent("ノイズ"), generatorData.noiseTypeIndex, new[]
                 {
                     new GUIContent("UnityEngine.Mathf.PerlinNoise")
                 });
@@ -112,6 +112,8 @@ namespace AutoTerrainGenerator.Editor
                 switch(_windowSettings.generatorData.noiseTypeIndex)
                 {
                     case 0:
+                        generatorData.generateType = (GenerateType)EditorGUILayout.EnumPopup(new GUIContent("アルゴリズム"), generatorData.generateType);
+
                         generatorData.seed = EditorGUILayout.IntField(new GUIContent("シード値", "シード値を設定します"), generatorData.seed);
 
                         generatorData.frequency = EditorGUILayout.FloatField(new GUIContent("周波数", "使用するノイズの周波数を設定します"), generatorData.frequency);

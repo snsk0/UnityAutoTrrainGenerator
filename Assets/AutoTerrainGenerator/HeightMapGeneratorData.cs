@@ -5,6 +5,7 @@ internal class HeightMapGeneratorData : ScriptableObject
 {
     //ƒmƒCƒY•Ï”
     public int noiseTypeIndex = 0;
+    public GenerateType generateType = GenerateType.fBm;
     public int seed = 0;
     public float frequency = 0;
     public bool isLinearScaling = false;

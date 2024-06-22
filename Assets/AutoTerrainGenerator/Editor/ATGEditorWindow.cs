@@ -50,13 +50,15 @@ namespace AutoTerrainGenerator.Editor
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowSettings);
 
                 //入力された設定値がある場合読み込む
-                string json = EditorUserSettings.GetConfigValue(nameof(_inputGeneratorData));
-                if (!string.IsNullOrEmpty(json))
+                string path = EditorUserSettings.GetConfigValue(nameof(_inputGeneratorData));
+                if (!string.IsNullOrEmpty(path))
                 {
-                    //読み込み時アセットがコピーされてしまっているのでそれを解決する
-                    _inputGeneratorData = CreateInstance<HeightMapGeneratorData>();
-                    JsonUtility.FromJsonOverwrite(json, _inputGeneratorData);
-                    _windowSettings.generatorData = _inputGeneratorData;
+                    _inputGeneratorData = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorData>(path);
+
+                    if(_inputGeneratorData != null)
+                    {
+                        _windowSettings.generatorData = Instantiate(_inputGeneratorData);
+                    }
                 }
 
                 //一応対策
@@ -84,7 +86,7 @@ namespace AutoTerrainGenerator.Editor
         {
             //デシリアライズして保存
             EditorUserSettings.SetConfigValue(nameof(_windowSettings), JsonUtility.ToJson(_windowSettings));
-            EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), JsonUtility.ToJson(_inputGeneratorData));
+            EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), AssetDatabase.GetAssetPath(_inputGeneratorData));
         }
 
         private void OnGUI()
@@ -226,8 +228,9 @@ namespace AutoTerrainGenerator.Editor
 
             if (GUILayout.Button(new GUIContent("テレインを生成する", "設定値からテレインを生成します")))
             {
+                //Dataをコピーして渡す
                 IHeightMapGenerator generator = new GeneratorByUnityPerlin();
-                float[,] heightMap = generator.Generate(generatorData);
+                float[,] heightMap = generator.Generate(Instantiate(generatorData));
 
                 TerrainData data = TerrainGenerator.Generate(heightMap, generatorData.scale);
 

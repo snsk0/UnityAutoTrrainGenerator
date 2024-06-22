@@ -15,6 +15,8 @@ namespace AutoTerrainGenerator
         internal const float FBmPersistence = 0.5f;
         internal const float FBmFrequencyRate = 2.0f;
 
+        internal const float RidgeOffset = 0.9f;
+
         internal static int GetResolution(int resolutionExp)
         {
             return (int)Mathf.Pow(ResolutionBase, resolutionExp) + 1;

@@ -38,7 +38,7 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
                     {
                         float value = ATGMathf.SignedPerlinNoise(x, y);
                         value = Mathf.Abs(value);
-                        value = (amplitude - ATGMathf.MinTerrainHeight) / 2 - value;
+                        value = ATGMathf.RidgeOffset - value;
                         return value *= value;
                     };
                     break;

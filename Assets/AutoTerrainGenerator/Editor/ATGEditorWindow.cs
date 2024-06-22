@@ -46,7 +46,18 @@ namespace AutoTerrainGenerator.Editor
             string windowSettings = EditorUserSettings.GetConfigValue(nameof(_windowSettings));
             if (!string.IsNullOrEmpty(windowSettings))
             {
+                //window情報の読み込み
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowSettings);
+
+                //入力された設定値がある場合読み込む
+                string json = EditorUserSettings.GetConfigValue(nameof(_inputGeneratorData));
+                if (!string.IsNullOrEmpty(json))
+                {
+                    //読み込み時アセットがコピーされてしまっているのでそれを解決する
+                    _inputGeneratorData = CreateInstance<HeightMapGeneratorData>();
+                    JsonUtility.FromJsonOverwrite(json, _inputGeneratorData);
+                    _windowSettings.generatorData = _inputGeneratorData;
+                }
 
                 //一応対策
                 if(_windowSettings.generatorData == null)
@@ -73,6 +84,7 @@ namespace AutoTerrainGenerator.Editor
         {
             //デシリアライズして保存
             EditorUserSettings.SetConfigValue(nameof(_windowSettings), JsonUtility.ToJson(_windowSettings));
+            EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), JsonUtility.ToJson(_inputGeneratorData));
         }
 
         private void OnGUI()

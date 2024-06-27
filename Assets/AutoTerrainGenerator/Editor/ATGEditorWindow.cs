@@ -29,7 +29,7 @@ namespace AutoTerrainGenerator.Editor
         //window情報
         private SerializedObject _serializedObject;
         private ATGWindowSettigs _windowSettings;
-        private HeightMapGeneratorData _generaterData;
+        private HeightMapGeneratorData _generatorData;
         private bool _canInputData => _inputGeneratorData == null;
 
         //TODO 実装
@@ -45,14 +45,14 @@ namespace AutoTerrainGenerator.Editor
         private void OnEnable()
         {
             string windowJson = EditorUserSettings.GetConfigValue(nameof(_windowSettings));
-            string generaterJson = EditorUserSettings.GetConfigValue(nameof(_generaterData));
+            string generaterJson = EditorUserSettings.GetConfigValue(nameof(_generatorData));
 
             if(!string.IsNullOrEmpty(windowJson) && ! string.IsNullOrEmpty(generaterJson)) 
             {
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowJson);
 
-                _generaterData = CreateInstance<HeightMapGeneratorData>();
-                JsonUtility.FromJsonOverwrite(generaterJson, _generaterData);
+                _generatorData = CreateInstance<HeightMapGeneratorData>();
+                JsonUtility.FromJsonOverwrite(generaterJson, _generatorData);
 
                 string dataPath = EditorUserSettings.GetConfigValue(nameof(_inputGeneratorData));
                 if (!string.IsNullOrEmpty(dataPath))
@@ -70,7 +70,7 @@ namespace AutoTerrainGenerator.Editor
                 _windowSettings.assetPath = "Assets";
                 _windowSettings.assetName = "Terrain";
                 
-                _generaterData = CreateInstance<HeightMapGeneratorData>();
+                _generatorData = CreateInstance<HeightMapGeneratorData>();
             }
 
             _serializedObject = new SerializedObject(this);
@@ -80,7 +80,7 @@ namespace AutoTerrainGenerator.Editor
         private void OnDisable()
         {
             EditorUserSettings.SetConfigValue(nameof(_windowSettings), JsonUtility.ToJson(_windowSettings));
-            EditorUserSettings.SetConfigValue(nameof(_generaterData), JsonUtility.ToJson(_generaterData));
+            EditorUserSettings.SetConfigValue(nameof(_generatorData), JsonUtility.ToJson(_generatorData));
 
             if(_inputGeneratorData != null)
             {
@@ -103,55 +103,55 @@ namespace AutoTerrainGenerator.Editor
             _windowSettings.isFoldoutNoise = EditorGUILayout.Foldout(_windowSettings.isFoldoutNoise, "Noise");
             if(_windowSettings.isFoldoutNoise)
             {
-                _generaterData.noiseTypeIndex = EditorGUILayout.Popup(new GUIContent("ノイズ"), _generaterData.noiseTypeIndex, new[]
+                _generatorData.noiseTypeIndex = EditorGUILayout.Popup(new GUIContent("ノイズ"), _generatorData.noiseTypeIndex, new[]
                 {
                     new GUIContent("UnityEngine.Mathf.PerlinNoise")
                 });
 
-                switch(_generaterData.noiseTypeIndex)
+                switch(_generatorData.noiseTypeIndex)
                 {
                     case 0:
-                        _generaterData.generateType = (GenerateType)EditorGUILayout.EnumPopup(new GUIContent("アルゴリズム"), _generaterData.generateType);
+                        _generatorData.generateType = (GenerateType)EditorGUILayout.EnumPopup(new GUIContent("アルゴリズム"), _generatorData.generateType);
 
-                        _generaterData.seed = EditorGUILayout.IntField(new GUIContent("シード値", "シード値を設定します"), _generaterData.seed);
+                        _generatorData.seed = EditorGUILayout.IntField(new GUIContent("シード値", "シード値を設定します"), _generatorData.seed);
 
-                        _generaterData.frequency = EditorGUILayout.FloatField(new GUIContent("周波数", "使用するノイズの周波数を設定します"), _generaterData.frequency);
+                        _generatorData.frequency = EditorGUILayout.FloatField(new GUIContent("周波数", "使用するノイズの周波数を設定します"), _generatorData.frequency);
                         MessageType type = MessageType.Info;
-                        if(_generaterData.frequency > 256)
+                        if(_generatorData.frequency > 256)
                         {
                             type = MessageType.Warning;
                         }
                         EditorGUILayout.HelpBox("UnityEngine.Mathf.PerlinNoiseの周期は256なため\n256以上の数値にすると同様の地形が現れる可能性があります", type);
 
-                        _generaterData.isLinearScaling = EditorGUILayout.Toggle(new GUIContent("線形スケーリング", "線形スケーリングを有効化します"), 
-                            _generaterData.isLinearScaling);
+                        _generatorData.isLinearScaling = EditorGUILayout.Toggle(new GUIContent("線形スケーリング", "線形スケーリングを有効化します"), 
+                            _generatorData.isLinearScaling);
 
-                        if (!_generaterData.isLinearScaling)
+                        if (!_generatorData.isLinearScaling)
                         {
-                            _generaterData.amplitude = EditorGUILayout.Slider(new GUIContent("振幅", "生成するHeightMapの振幅を設定します"),
-                                _generaterData.amplitude, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
+                            _generatorData.amplitude = EditorGUILayout.Slider(new GUIContent("振幅", "生成するHeightMapの振幅を設定します"),
+                                _generatorData.amplitude, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
                         }
                         else
                         {
                             EditorGUILayout.MinMaxSlider(new GUIContent("スケール範囲", "生成するHeightMapのスケール範囲を設定します"),
-                                ref _generaterData.minLinearScale, ref _generaterData.maxLinearScale, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
+                                ref _generatorData.minLinearScale, ref _generatorData.maxLinearScale, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
 
                             GUI.enabled = false;
-                            EditorGUILayout.FloatField(new GUIContent("最低値", "振幅の最低値を表示します"), _generaterData.minLinearScale);
-                            EditorGUILayout.FloatField(new GUIContent("最高値", "振幅の最高値を表示します"), _generaterData.maxLinearScale);
-                            EditorGUILayout.FloatField(new GUIContent("振幅", "振幅の値を表示します"), _generaterData.maxLinearScale - _generaterData.minLinearScale);
+                            EditorGUILayout.FloatField(new GUIContent("最低値", "振幅の最低値を表示します"), _generatorData.minLinearScale);
+                            EditorGUILayout.FloatField(new GUIContent("最高値", "振幅の最高値を表示します"), _generatorData.maxLinearScale);
+                            EditorGUILayout.FloatField(new GUIContent("振幅", "振幅の値を表示します"), _generatorData.maxLinearScale - _generatorData.minLinearScale);
                             if (_canInputData)
                             {
                                 GUI.enabled = true;
                             }
                         }
 
-                        if (_generaterData.octaves > 0 && _generaterData.maxLinearScale == ATGMathf.MaxTerrainHeight)
+                        if (_generatorData.octaves > 0 && _generatorData.maxLinearScale == ATGMathf.MaxTerrainHeight)
                         {
                             EditorGUILayout.HelpBox("オクターブを利用する場合、振幅を1未満に設定してください\n地形が正しく生成されません\n0.5が推奨されます", MessageType.Error);
                         }
 
-                        _generaterData.octaves = EditorGUILayout.IntField(new GUIContent("オクターブ", "非整数ブラウン運動を利用してオクターブの数値の回数ノイズを重ねます"), _generaterData.octaves);
+                        _generatorData.octaves = EditorGUILayout.IntField(new GUIContent("オクターブ", "非整数ブラウン運動を利用してオクターブの数値の回数ノイズを重ねます"), _generatorData.octaves);
                         break;
                 }
             }
@@ -159,16 +159,16 @@ namespace AutoTerrainGenerator.Editor
             _windowSettings.isFoldoutHeightMap = EditorGUILayout.Foldout(_windowSettings.isFoldoutHeightMap, "HeightMap");
             if (_windowSettings.isFoldoutHeightMap)
             {
-                _generaterData.scale.x = EditorGUILayout.FloatField(new GUIContent("横幅", "HeightMapの横幅を設定します"), _generaterData.scale.x);
-                _generaterData.scale.z = EditorGUILayout.FloatField(new GUIContent("奥行", "HeightMapの奥行を設定します"), _generaterData.scale.z);
-                _generaterData.scale.y = EditorGUILayout.FloatField(new GUIContent("高さ", "HeightMapの高さを設定します"), _generaterData.scale.y);
+                _generatorData.scale.x = EditorGUILayout.FloatField(new GUIContent("横幅", "HeightMapの横幅を設定します"), _generatorData.scale.x);
+                _generatorData.scale.z = EditorGUILayout.FloatField(new GUIContent("奥行", "HeightMapの奥行を設定します"), _generatorData.scale.z);
+                _generatorData.scale.y = EditorGUILayout.FloatField(new GUIContent("高さ", "HeightMapの高さを設定します"), _generatorData.scale.y);
 
                 int[] resolutionExpArray = new int[ATGMathf.ResolutionExpRange];
                 for(int i = 0; i < ATGMathf.ResolutionExpRange; i++)
                 {
                     resolutionExpArray[i] = i + ATGMathf.MinResolutionExp;
                 }
-                _generaterData.resolutionExp = EditorGUILayout.IntPopup(new GUIContent("解像度", "HeightMapの解像度を設定します"), _generaterData.resolutionExp, 
+                _generatorData.resolutionExp = EditorGUILayout.IntPopup(new GUIContent("解像度", "HeightMapの解像度を設定します"), _generatorData.resolutionExp, 
                     new[]
                 {
                     new GUIContent("33×33"),
@@ -223,7 +223,7 @@ namespace AutoTerrainGenerator.Editor
             //Generatorの入力があった場合反映する
             if (_inputGeneratorData != null)
             {
-                _generaterData = Instantiate(_inputGeneratorData);
+                _generatorData = Instantiate(_inputGeneratorData);
             }
             GUI.enabled = true;
 
@@ -231,9 +231,9 @@ namespace AutoTerrainGenerator.Editor
             {
                 //Dataをコピーして渡す
                 IHeightMapGenerator generator = new GeneratorByUnityPerlin();
-                float[,] heightMap = generator.Generate(Instantiate(_generaterData));
+                float[,] heightMap = generator.Generate(Instantiate(_generatorData));
 
-                TerrainData data = TerrainGenerator.Generate(heightMap, _generaterData.scale);
+                TerrainData data = TerrainGenerator.Generate(heightMap, _generatorData.scale);
 
                 if (_windowSettings.isCreateAsset)
                 {
@@ -247,7 +247,7 @@ namespace AutoTerrainGenerator.Editor
                 if(!string.IsNullOrEmpty(savePath)) 
                 {
                     //値をコピーする
-                    HeightMapGeneratorData outputGeneratorData = Instantiate(_generaterData);
+                    HeightMapGeneratorData outputGeneratorData = Instantiate(_generatorData);
 
                     //出力する
                     AssetDatabase.CreateAsset(outputGeneratorData, savePath);

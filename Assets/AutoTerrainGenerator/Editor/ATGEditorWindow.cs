@@ -44,18 +44,19 @@ namespace AutoTerrainGenerator.Editor
         //デシリアライズして設定取得
         private void OnEnable()
         {
-            if (EditorPrefs.HasKey(nameof(_windowSettings)) && EditorPrefs.HasKey(nameof(_generaterData)))
+            string windowJson = EditorUserSettings.GetConfigValue(nameof(_windowSettings));
+            string generaterJson = EditorUserSettings.GetConfigValue(nameof(_generaterData));
+
+            if(!string.IsNullOrEmpty(windowJson) && ! string.IsNullOrEmpty(generaterJson)) 
             {
-                string windowJson = EditorPrefs.GetString(nameof(_windowSettings));
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowJson);
 
-                string generaterJson = EditorPrefs.GetString(nameof(_generaterData));
                 _generaterData = CreateInstance<HeightMapGeneratorData>();
                 JsonUtility.FromJsonOverwrite(generaterJson, _generaterData);
 
-                if (EditorPrefs.HasKey(nameof(_inputGeneratorData)))
+                string dataPath = EditorUserSettings.GetConfigValue(nameof(_inputGeneratorData));
+                if (!string.IsNullOrEmpty(dataPath))
                 {
-                    string dataPath = EditorPrefs.GetString(nameof(_inputGeneratorData));
                     _inputGeneratorData = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorData>(dataPath);
                 }
             }
@@ -78,12 +79,12 @@ namespace AutoTerrainGenerator.Editor
         //シリアライズして保存する
         private void OnDisable()
         {
-            EditorPrefs.SetString(nameof(_windowSettings), JsonUtility.ToJson(_windowSettings));
-            EditorPrefs.SetString(nameof(_generaterData), JsonUtility.ToJson(_generaterData));
+            EditorUserSettings.SetConfigValue(nameof(_windowSettings), JsonUtility.ToJson(_windowSettings));
+            EditorUserSettings.SetConfigValue(nameof(_generaterData), JsonUtility.ToJson(_generaterData));
 
             if(_inputGeneratorData != null)
             {
-                EditorPrefs.SetString(nameof(_inputGeneratorData), AssetDatabase.GetAssetPath(_inputGeneratorData));
+                EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), AssetDatabase.GetAssetPath(_inputGeneratorData));
             }
         }
 

@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using UnityEditor;
 using AutoTerrainGenerator.HeightMapGenerators;
+using AutoTerrainGenerator.Parameters;
 
 namespace AutoTerrainGenerator.Editors
 {
@@ -24,12 +25,12 @@ namespace AutoTerrainGenerator.Editors
 
         //入力
         [SerializeField]
-        private HeightMapGeneratorData _inputGeneratorData;
+        private HeightMapGeneratorParam _inputGeneratorData;
 
         //window情報
         private SerializedObject _serializedObject;
         private ATGWindowSettigs _windowSettings;
-        private HeightMapGeneratorData _generatorData;
+        private HeightMapGeneratorParam _generatorData;
         private bool _canInputData => _inputGeneratorData == null;
 
         //TODO 実装
@@ -51,13 +52,13 @@ namespace AutoTerrainGenerator.Editors
             {
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowJson);
 
-                _generatorData = CreateInstance<HeightMapGeneratorData>();
+                _generatorData = CreateInstance<HeightMapGeneratorParam>();
                 JsonUtility.FromJsonOverwrite(generaterJson, _generatorData);
 
                 string dataPath = EditorUserSettings.GetConfigValue(nameof(_inputGeneratorData));
                 if (!string.IsNullOrEmpty(dataPath))
                 {
-                    _inputGeneratorData = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorData>(dataPath);
+                    _inputGeneratorData = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorParam>(dataPath);
                 }
             }
             else
@@ -70,7 +71,7 @@ namespace AutoTerrainGenerator.Editors
                 _windowSettings.assetPath = "Assets";
                 _windowSettings.assetName = "Terrain";
                 
-                _generatorData = CreateInstance<HeightMapGeneratorData>();
+                _generatorData = CreateInstance<HeightMapGeneratorParam>();
             }
 
             _serializedObject = new SerializedObject(this);
@@ -247,7 +248,7 @@ namespace AutoTerrainGenerator.Editors
                 if(!string.IsNullOrEmpty(savePath)) 
                 {
                     //値をコピーする
-                    HeightMapGeneratorData outputGeneratorData = Instantiate(_generatorData);
+                    HeightMapGeneratorParam outputGeneratorData = Instantiate(_generatorData);
 
                     //出力する
                     AssetDatabase.CreateAsset(outputGeneratorData, savePath);

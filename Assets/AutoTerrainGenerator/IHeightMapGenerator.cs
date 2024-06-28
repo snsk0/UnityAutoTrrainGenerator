@@ -1,8 +1,10 @@
+using AutoTerrainGenerator.Parameters;
+
 namespace AutoTerrainGenerator
 {
     internal interface IHeightMapGenerator
     {
-        float[,] Generate(HeightMapGeneratorData data);
+        float[,] Generate(HeightMapGeneratorParam data);
     }
 }
 

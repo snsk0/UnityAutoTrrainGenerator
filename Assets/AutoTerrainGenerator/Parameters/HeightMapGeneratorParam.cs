@@ -1,9 +1,8 @@
-using AutoTerrainGenerator;
 using UnityEngine;
 
-namespace AutoTerrainGenerator
+namespace AutoTerrainGenerator.Parameters
 {
-    internal class HeightMapGeneratorData : ScriptableObject
+    internal class HeightMapGeneratorParam : ScriptableObject
     {
         //ƒmƒCƒY•Ï”
         public int noiseTypeIndex = 0;

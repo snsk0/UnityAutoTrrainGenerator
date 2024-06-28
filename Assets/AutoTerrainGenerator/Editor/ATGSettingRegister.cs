@@ -41,6 +41,14 @@ namespace AutoTerrainGenerator.Editors
                     }
 
                     Type scriptType = script.GetClass();
+
+                    //ÉNÉâÉXÇ™Ç»Ç¢èÍçá(enumÇÃÇ›Ç»Ç«)
+                    if(scriptType == null)
+                    {
+                        _settingsData.heightMapGenerators[i] = null;
+                        break;
+                    }
+
                     foreach(Type iType in scriptType.GetInterfaces())
                     {
                         isGenerator = iType == typeof(IHeightMapGenerator);

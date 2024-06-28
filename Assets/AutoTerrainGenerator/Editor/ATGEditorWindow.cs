@@ -1,9 +1,12 @@
 #if UNITY_EDITOR
 using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using AutoTerrainGenerator.HeightMapGenerators;
 using AutoTerrainGenerator.Parameters;
+using System.Collections.Generic;
+using UnityEditor.EditorTools;
 
 namespace AutoTerrainGenerator.Editors
 {
@@ -16,6 +19,9 @@ namespace AutoTerrainGenerator.Editors
             public bool isFoldoutNoise;
             public bool isFoldoutHeightMap;
             public bool isFoldoutAsset;
+
+            //アルゴリズム指定
+            public int generatorIndex;
 
             //アセット
             public bool isCreateAsset;
@@ -30,7 +36,8 @@ namespace AutoTerrainGenerator.Editors
         //window情報
         private SerializedObject _serializedObject;
         private ATGWindowSettigs _windowSettings;
-        private IATGSettingProvider _settingProvider;
+        private List<IHeightMapGenerator> _generators;
+        private Dictionary<IHeightMapGenerator, GeneratorEditor> _generatorToInspector;
 
         private HeightMapGeneratorParam _generatorData;
         private bool _canInputData => _inputGeneratorData == null;
@@ -47,11 +54,11 @@ namespace AutoTerrainGenerator.Editors
         //デシリアライズして設定取得
         private void OnEnable()
         {
-            _settingProvider = ATGSettingsData.GetOrCreateData();
-
+            //json取得
             string windowJson = EditorUserSettings.GetConfigValue(nameof(_windowSettings));
             string generaterJson = EditorUserSettings.GetConfigValue(nameof(_generatorData));
 
+            //デシリアライズ
             if(!string.IsNullOrEmpty(windowJson) && ! string.IsNullOrEmpty(generaterJson)) 
             {
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowJson);
@@ -65,6 +72,7 @@ namespace AutoTerrainGenerator.Editors
                     _inputGeneratorData = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorParam>(dataPath);
                 }
             }
+            //初期化処理
             else
             {
                 _windowSettings = new ATGWindowSettigs();
@@ -79,6 +87,43 @@ namespace AutoTerrainGenerator.Editors
             }
 
             _serializedObject = new SerializedObject(this);
+
+            //settingProviderから設定値をコピーする
+            UnityEngine.Object providerObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(IATGSettingProvider.SettingsPath);
+            if(providerObject != null)
+            {
+                IATGSettingProvider settingProvider = (IATGSettingProvider)Instantiate(providerObject);
+                _generators = settingProvider.GetGenerators();
+            }
+
+            //ATGCustomEditorのついたクラスを取得
+            _generatorToInspector = new Dictionary<IHeightMapGenerator, GeneratorEditor>();
+            foreach(Type type in TypeCache.GetTypesWithAttribute<ATGCustomEditor>())
+            {
+                Debug.Log("type");
+                ATGCustomEditor attributeType = type.GetCustomAttribute<ATGCustomEditor>();
+
+                //CustomAttributeがないならそのクラスをスキップ
+                if (attributeType == null)
+                {
+                    Debug.Log("NoneAttribute");
+                    break;
+                }
+
+                //一致するものを格納
+                foreach (IHeightMapGenerator generator in _generators)
+                {
+                    if (generator.GetType() == attributeType.inspectedType)
+                    {
+                        //Editorを生成する
+                        GeneratorEditor editor = (GeneratorEditor)Activator.CreateInstance(type);
+
+                        //紐づけて格納
+                        _generatorToInspector.Add(generator, editor);
+                        break;
+                    }
+                }
+            }
         }
 
         //シリアライズして保存する
@@ -90,6 +135,10 @@ namespace AutoTerrainGenerator.Editors
             if(_inputGeneratorData != null)
             {
                 EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), AssetDatabase.GetAssetPath(_inputGeneratorData));
+            }
+            else
+            {
+                EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), string.Empty);
             }
         }
 
@@ -116,8 +165,29 @@ namespace AutoTerrainGenerator.Editors
                 switch(_generatorData.noiseTypeIndex)
                 {
                     case 0:
-                        _generatorData.generateType = (GenerateType)EditorGUILayout.EnumPopup(new GUIContent("アルゴリズム"), _generatorData.generateType);
+                        //アルゴリズムのGUIContentを作成する
+                        List<GUIContent> gUIContents = new List<GUIContent>();
+                        List<int> values = new List<int>();
+                        foreach(IHeightMapGenerator generator in _generators)
+                        {
+                            gUIContents.Add(new GUIContent(generator.GetType().ToString()));
+                        }
 
+                        //アルゴリズムの一覧表示
+                        _windowSettings.generatorIndex = EditorGUILayout.IntPopup(new GUIContent("アルゴリズム"), _windowSettings.generatorIndex, gUIContents.ToArray(), values.ToArray());
+
+                        //選択したindexの拡張を調べる
+                        IHeightMapGenerator selectedGenerator = _generators[_windowSettings.generatorIndex];
+                        if (_generatorToInspector.ContainsKey(selectedGenerator))
+                        {
+                            _generatorToInspector[selectedGenerator].OnInspectorGUI();
+                        }
+                        //拡張がない場合、SerializeFieldを全て表示する
+                        else
+                        {
+                        }
+
+                        /*
                         _generatorData.seed = EditorGUILayout.IntField(new GUIContent("シード値", "シード値を設定します"), _generatorData.seed);
 
                         _generatorData.frequency = EditorGUILayout.FloatField(new GUIContent("周波数", "使用するノイズの周波数を設定します"), _generatorData.frequency);
@@ -157,6 +227,7 @@ namespace AutoTerrainGenerator.Editors
                         }
 
                         _generatorData.octaves = EditorGUILayout.IntField(new GUIContent("オクターブ", "非整数ブラウン運動を利用してオクターブの数値の回数ノイズを重ねます"), _generatorData.octaves);
+                        */
                         break;
                 }
             }
@@ -236,7 +307,7 @@ namespace AutoTerrainGenerator.Editors
             {
                 //Dataをコピーして渡す
                 IHeightMapGenerator generator = new GeneratorByUnityPerlin();
-                float[,] heightMap = generator.Generate(Instantiate(_generatorData));
+                float[,] heightMap = generator.Generate();
 
                 TerrainData data = TerrainGenerator.Generate(heightMap, _generatorData.scale);
 

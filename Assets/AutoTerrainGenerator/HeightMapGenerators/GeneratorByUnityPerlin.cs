@@ -8,8 +8,10 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
     {
         private const float PerlinNoiseFrequency = 256f;
 
-        public float[,] Generate(HeightMapGeneratorParam data)
+        public float[,] Generate()
         {
+            HeightMapGeneratorParam data = new HeightMapGeneratorParam();
+
             Random.InitState(data.seed);
             float xSeed = Random.Range(0f, PerlinNoiseFrequency);
             float ySeed = Random.Range(0f, PerlinNoiseFrequency);
@@ -22,6 +24,7 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
             float amplitude = data.amplitude;
 
             System.Func<float, float, float> noiseFunc = null;
+            /*
             switch (data.generateType)
             {
                 case GenerateType.fBm:
@@ -43,9 +46,10 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
                         return value *= value;
                     };
                     break;
-            }
+            }*/
+            noiseFunc = Mathf.PerlinNoise;
 
-            if(data.isLinearScaling)
+            if (data.isLinearScaling)
             {
                 amplitude = ATGMathf.MaxTerrainHeight;
             }

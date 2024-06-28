@@ -11,23 +11,23 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
         [SerializeField]
         private HeightMapGeneratorParam _param;
 
-        [SerializeField]
-        private Vector3 vec;
+        private void Awake()
+        {
+            _param = CreateInstance<HeightMapGeneratorParam>();
+        }
 
         public override float[,] Generate()
         {
-            HeightMapGeneratorParam data = _param;
-
-            Random.InitState(data.seed);
+            Random.InitState(_param.seed);
             float xSeed = Random.Range(0f, PerlinNoiseFrequency);
             float ySeed = Random.Range(0f, PerlinNoiseFrequency);
 
-            int resolution = ATGMathf.GetResolution(data.resolutionExp);
+            int resolution = ATGMathf.GetResolution(_param.resolutionExp);
 
             float[,] heightMap = new float[resolution, resolution];
 
-            float frequency = data.frequency;
-            float amplitude = data.amplitude;
+            float frequency = _param.frequency;
+            float amplitude = _param.amplitude;
 
             System.Func<float, float, float> noiseFunc = null;
             /*
@@ -55,12 +55,12 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
             }*/
             noiseFunc = Mathf.PerlinNoise;
 
-            if (data.isLinearScaling)
+            if (_param.isLinearScaling)
             {
                 amplitude = ATGMathf.MaxTerrainHeight;
             }
 
-            for (int i = 0; i <= data.octaves; i++)
+            for (int i = 0; i <= _param.octaves; i++)
             {
                 for (int x = 0; x < resolution; x++)
                 {
@@ -77,7 +77,7 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
             }
 
             //スケーリング
-            if(data.isLinearScaling)
+            if(_param.isLinearScaling)
             {
                 IEnumerable<float> heightEnum = heightMap.Cast<float>();
                 float minHeight = heightEnum.Min();
@@ -87,7 +87,7 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
                 {
                     for (int y = 0; y < heightMap.GetLength(1); y++)
                     {
-                        heightMap[x, y] = ATGMathf.LinearScaling(heightMap[x, y], minHeight, maxHeight, data.minLinearScale, data.maxLinearScale);
+                        heightMap[x, y] = ATGMathf.LinearScaling(heightMap[x, y], minHeight, maxHeight, _param.minLinearScale, _param.maxLinearScale);
                     }
                 }
             }

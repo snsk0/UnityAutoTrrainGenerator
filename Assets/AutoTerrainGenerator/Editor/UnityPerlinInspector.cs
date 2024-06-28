@@ -14,14 +14,8 @@ namespace AutoTerrainGenerator.Editors
             serializedObject.Update();
 
             //パラメータオブジェクトを取得
-            Debug.LogWarning(serializedObject.targetObject);
-            var param01 = serializedObject.FindProperty("_param").objectReferenceValue;
-            Debug.Log(param01);
+            HeightMapGeneratorParam param = serializedObject.FindProperty("_param").objectReferenceValue as HeightMapGeneratorParam;
 
-            Debug.Log(serializedObject.FindProperty("vec").vector3Value);
-
-            HeightMapGeneratorParam param = (HeightMapGeneratorParam)param01;
-            
             param.seed = EditorGUILayout.IntField(new GUIContent("シード値", "シード値を設定します"), param.seed);
 
             param.frequency = EditorGUILayout.FloatField(new GUIContent("周波数", "使用するノイズの周波数を設定します"), param.frequency);

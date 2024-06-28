@@ -2,8 +2,8 @@ using UnityEditor;
 
 namespace AutoTerrainGenerator.Editors
 {
-    [CustomEditor(typeof(HeightMapGeneratorData))]
-    internal class HeightMapGeneratorDataInspector : Editor
+    [CustomEditor(typeof(ATGSettingsData))]
+    internal class ATGSettingsDataInspector : Editor
     {
         public override void OnInspectorGUI()
         {

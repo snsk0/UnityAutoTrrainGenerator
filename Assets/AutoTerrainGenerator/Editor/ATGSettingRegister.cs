@@ -2,15 +2,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace AutoTerrainGenerator.Editor {
+namespace AutoTerrainGenerator.Editors 
+{
     internal static class ATGSettingRegister
     {
         private class ATGSettingsProvider : SettingsProvider
         {
-            private ATGSettingData _settingData;
+            private ATGSettingsData _settingsData;
             private SerializedObject _serializedObject;
 
             public ATGSettingsProvider(string path, SettingsScope scopes, IEnumerable<string> keywords) : base(path, scopes, keywords)
@@ -20,29 +20,21 @@ namespace AutoTerrainGenerator.Editor {
 
             public override void OnActivate(string searchContext, VisualElement rootElement)
             {
-                _settingData = ATGSettingData.GetOrCreateData();
-                _serializedObject = new SerializedObject(_settingData);
-            }
-
-            public override void OnDeactivate()
-            {
-                if(_serializedObject != null)
-                {
-                    ATGSettingData.SetConfigData(_settingData);
-                }
+                _settingsData = ATGSettingsData.GetOrCreateData();
+                _serializedObject = new SerializedObject(_settingsData);
             }
 
             public override void OnGUI(string searchContext)
             {
                 _serializedObject.Update();
 
-                EditorGUILayout.PropertyField(_serializedObject.FindProperty(ATGSettingData.HeightMapGeneratorsName));
+                EditorGUILayout.PropertyField(_serializedObject.FindProperty(ATGSettingsData.HeightMapGeneratorsName));
 
                 //classàÍóóÇéÊìæÇµÅAGeneratorà»äOnullÇë„ì¸Ç∑ÇÈ
                 bool isGenerator = false;
-                for(int i = 0; i < _settingData.heightMapGenerators.Count; i++)
+                for(int i = 0; i < _settingsData.heightMapGenerators.Count; i++)
                 {
-                    MonoScript script = _settingData.heightMapGenerators[i];
+                    MonoScript script = _settingsData.heightMapGenerators[i];
                     if(script == null)
                     {
                         break;
@@ -60,44 +52,11 @@ namespace AutoTerrainGenerator.Editor {
 
                     if (!isGenerator)
                     {
-                        _settingData.heightMapGenerators[i] = null;
+                        _settingsData.heightMapGenerators[i] = null;
                     }
                 }
 
                 _serializedObject.ApplyModifiedProperties();
-            }
-
-
-        }
-
-        internal class ATGSettingData : ScriptableObject
-        {
-            public const string HeightMapGeneratorsName = "_heightMapGenerators";
-
-            [SerializeField]
-            private List<MonoScript> _heightMapGenerators;
-            public List<MonoScript> heightMapGenerators => _heightMapGenerators;
-
-            internal static ATGSettingData GetOrCreateData()
-            {
-                string dataJson = EditorUserSettings.GetConfigValue(nameof(ATGSettingData));
-                ATGSettingData settingData = CreateInstance<ATGSettingData>();
-
-                if (!string.IsNullOrEmpty(dataJson))
-                {
-                    JsonUtility.FromJsonOverwrite(dataJson, settingData);
-                }
-                else
-                {
-                    settingData._heightMapGenerators = new List<MonoScript>();
-                }
-                return settingData;
-            }
-
-            internal static void SetConfigData(ATGSettingData settingData)
-            {
-                string dataJson = JsonUtility.ToJson(settingData);
-                EditorUserSettings.SetConfigValue(nameof(ATGSettingData), dataJson);
             }
         }
 

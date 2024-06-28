@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using AutoTerrainGenerator.HeightMapGenerators;
 
-namespace AutoTerrainGenerator.Editor
+namespace AutoTerrainGenerator.Editors
 {
     internal class ATGEditorWindow : EditorWindow
     {

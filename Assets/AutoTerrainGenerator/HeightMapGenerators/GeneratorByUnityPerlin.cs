@@ -4,13 +4,19 @@ using UnityEngine;
 using AutoTerrainGenerator.Parameters;
 
 namespace AutoTerrainGenerator.HeightMapGenerators {
-    internal class GeneratorByUnityPerlin : IHeightMapGenerator
+    internal class GeneratorByUnityPerlin : HeightMapGeneratorBase
     {
         private const float PerlinNoiseFrequency = 256f;
 
-        public float[,] Generate()
+        [SerializeField]
+        private HeightMapGeneratorParam _param;
+
+        [SerializeField]
+        private Vector3 vec;
+
+        public override float[,] Generate()
         {
-            HeightMapGeneratorParam data = new HeightMapGeneratorParam();
+            HeightMapGeneratorParam data = _param;
 
             Random.InitState(data.seed);
             float xSeed = Random.Range(0f, PerlinNoiseFrequency);

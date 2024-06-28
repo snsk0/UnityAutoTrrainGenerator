@@ -28,15 +28,15 @@ namespace AutoTerrainGenerator
             return settingData;
         }
 
-        public List<IHeightMapGenerator> GetGenerators()
+        public List<HeightMapGeneratorBase> GetGenerators()
         {
-            List<IHeightMapGenerator> heightMapGenerators = new List<IHeightMapGenerator>();
+            List<HeightMapGeneratorBase> heightMapGenerators = new List<HeightMapGeneratorBase>();
 
             foreach(MonoScript generatorScript in _heightMapGenerators)
             {
                 if(generatorScript != null)
                 {
-                    IHeightMapGenerator generator = (IHeightMapGenerator)Activator.CreateInstance(generatorScript.GetClass());
+                    HeightMapGeneratorBase generator = (HeightMapGeneratorBase)CreateInstance(generatorScript.GetClass());
                     heightMapGenerators.Add(generator);
                 }
             }

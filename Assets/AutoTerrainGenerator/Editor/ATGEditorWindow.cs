@@ -36,8 +36,8 @@ namespace AutoTerrainGenerator.Editors
         //window情報
         private SerializedObject _serializedObject;
         private ATGWindowSettigs _windowSettings;
-        private List<IHeightMapGenerator> _generators;
-        private Dictionary<IHeightMapGenerator, GeneratorEditor> _generatorToInspector;
+        private List<HeightMapGeneratorBase> _generators;
+        private Dictionary<HeightMapGeneratorBase, GeneratorEditor> _generatorToInspector;
 
         private HeightMapGeneratorParam _generatorData;
         private bool _canInputData => _inputGeneratorData == null;
@@ -97,26 +97,18 @@ namespace AutoTerrainGenerator.Editors
             }
 
             //ATGCustomEditorのついたクラスを取得
-            _generatorToInspector = new Dictionary<IHeightMapGenerator, GeneratorEditor>();
+            _generatorToInspector = new Dictionary<HeightMapGeneratorBase, GeneratorEditor>();
             foreach(Type type in TypeCache.GetTypesWithAttribute<ATGCustomEditor>())
             {
-                Debug.Log("type");
                 ATGCustomEditor attributeType = type.GetCustomAttribute<ATGCustomEditor>();
 
-                //CustomAttributeがないならそのクラスをスキップ
-                if (attributeType == null)
-                {
-                    Debug.Log("NoneAttribute");
-                    break;
-                }
-
                 //一致するものを格納
-                foreach (IHeightMapGenerator generator in _generators)
+                foreach (HeightMapGeneratorBase generator in _generators)
                 {
                     if (generator.GetType() == attributeType.inspectedType)
                     {
                         //Editorを生成する
-                        GeneratorEditor editor = (GeneratorEditor)Activator.CreateInstance(type);
+                        GeneratorEditor editor = GeneratorEditor.CreateEditor(generator, type);
 
                         //紐づけて格納
                         _generatorToInspector.Add(generator, editor);
@@ -168,7 +160,7 @@ namespace AutoTerrainGenerator.Editors
                         //アルゴリズムのGUIContentを作成する
                         List<GUIContent> gUIContents = new List<GUIContent>();
                         List<int> values = new List<int>();
-                        foreach(IHeightMapGenerator generator in _generators)
+                        foreach(HeightMapGeneratorBase generator in _generators)
                         {
                             gUIContents.Add(new GUIContent(generator.GetType().ToString()));
                         }
@@ -177,7 +169,7 @@ namespace AutoTerrainGenerator.Editors
                         _windowSettings.generatorIndex = EditorGUILayout.IntPopup(new GUIContent("アルゴリズム"), _windowSettings.generatorIndex, gUIContents.ToArray(), values.ToArray());
 
                         //選択したindexの拡張を調べる
-                        IHeightMapGenerator selectedGenerator = _generators[_windowSettings.generatorIndex];
+                        HeightMapGeneratorBase selectedGenerator = _generators[_windowSettings.generatorIndex];
                         if (_generatorToInspector.ContainsKey(selectedGenerator))
                         {
                             _generatorToInspector[selectedGenerator].OnInspectorGUI();
@@ -185,6 +177,10 @@ namespace AutoTerrainGenerator.Editors
                         //拡張がない場合、SerializeFieldを全て表示する
                         else
                         {
+                            foreach (FieldInfo field in TypeCache.GetFieldsWithAttribute<SerializeField>())
+                            {
+                                //EditorGUILayout.PropertyField(_serializedObject.FindProperty(field.Name));
+                            }
                         }
 
                         /*
@@ -306,7 +302,7 @@ namespace AutoTerrainGenerator.Editors
             if (GUILayout.Button(new GUIContent("テレインを生成する", "設定値からテレインを生成します")))
             {
                 //Dataをコピーして渡す
-                IHeightMapGenerator generator = new GeneratorByUnityPerlin();
+                HeightMapGeneratorBase generator = new GeneratorByUnityPerlin();
                 float[,] heightMap = generator.Generate();
 
                 TerrainData data = TerrainGenerator.Generate(heightMap, _generatorData.scale);

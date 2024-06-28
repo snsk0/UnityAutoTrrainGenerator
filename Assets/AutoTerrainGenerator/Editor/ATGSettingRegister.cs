@@ -31,7 +31,6 @@ namespace AutoTerrainGenerator.Editors
                 EditorGUILayout.PropertyField(_serializedObject.FindProperty(ATGSettingsData.HeightMapGeneratorsName));
 
                 //class一覧を取得し、Generator以外nullを代入する
-                bool isGenerator = false;
                 for(int i = 0; i < _settingsData.heightMapGenerators.Count; i++)
                 {
                     MonoScript script = _settingsData.heightMapGenerators[i];
@@ -43,24 +42,19 @@ namespace AutoTerrainGenerator.Editors
                     Type scriptType = script.GetClass();
 
                     //クラスがない場合(enumのみなど)
-                    if(scriptType == null)
+                    if (scriptType == null)
                     {
                         _settingsData.heightMapGenerators[i] = null;
                         break;
                     }
 
-                    foreach(Type iType in scriptType.GetInterfaces())
-                    {
-                        isGenerator = iType == typeof(IHeightMapGenerator);
-                        if (isGenerator)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (!isGenerator)
+                    if (!scriptType.IsSubclassOf(typeof(HeightMapGeneratorBase)))
                     {
                         _settingsData.heightMapGenerators[i] = null;
+                    }
+                    else
+                    {
+                        _settingsData.heightMapGenerators[i] = script;
                     }
                 }
 

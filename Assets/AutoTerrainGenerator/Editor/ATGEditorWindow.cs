@@ -30,6 +30,8 @@ namespace AutoTerrainGenerator.Editors
         //window情報
         private SerializedObject _serializedObject;
         private ATGWindowSettigs _windowSettings;
+        private IATGSettingProvider _settingProvider;
+
         private HeightMapGeneratorParam _generatorData;
         private bool _canInputData => _inputGeneratorData == null;
 
@@ -45,6 +47,8 @@ namespace AutoTerrainGenerator.Editors
         //デシリアライズして設定取得
         private void OnEnable()
         {
+            _settingProvider = ATGSettingsData.GetOrCreateData();
+
             string windowJson = EditorUserSettings.GetConfigValue(nameof(_windowSettings));
             string generaterJson = EditorUserSettings.GetConfigValue(nameof(_generatorData));
 

@@ -153,12 +153,10 @@ namespace AutoTerrainGenerator.Editors
             }
 
             //generator‚ðEditor‚ÌŒã‚É‘S‚Ä”jŠü‚·‚é
-            /*
             foreach (HeightMapGeneratorBase generator in _generators)
             {
                 DestroyImmediate(generator);
             }
-            */
         }
 
         private void OnGUI()

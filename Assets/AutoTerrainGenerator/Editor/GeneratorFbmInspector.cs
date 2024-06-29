@@ -7,12 +7,12 @@ namespace AutoTerrainGenerator.Editors
     [CustomEditor(typeof(GeneratorFbm))]
     public class GeneratorFbmInspector : Editor
     {
-        private void Awake()
+        private void OnEnable()
         {
             SharedDefaultInspector.OnEnable(serializedObject, GetType());
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
             SharedDefaultInspector.OnDisable(serializedObject, GetType());
         }

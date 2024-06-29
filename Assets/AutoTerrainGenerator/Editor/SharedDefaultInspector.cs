@@ -65,6 +65,17 @@ namespace AutoTerrainGenerator.Editors
             //パラメータオブジェクトを取得
             HeightMapGeneratorParam param = serializedObject.FindProperty("_param").objectReferenceValue as HeightMapGeneratorParam;
 
+            //設定値の読み込み
+            SerializedProperty inputProperty = serializedObject.FindProperty("_inputParam");
+            EditorGUILayout.PropertyField(inputProperty, new GUIContent("入力", "HeightMapParamを入力します"));
+            if(inputProperty.objectReferenceValue != null)
+            {
+                GUI.enabled = false;
+
+                //設定値の上書き
+                param = inputProperty.objectReferenceValue as HeightMapGeneratorParam;
+            }
+
             param.seed = EditorGUILayout.IntField(new GUIContent("シード値", "シード値を設定します"), param.seed);
 
             param.frequency = EditorGUILayout.FloatField(new GUIContent("周波数", "使用するノイズの周波数を設定します"), param.frequency);
@@ -87,11 +98,12 @@ namespace AutoTerrainGenerator.Editors
                 EditorGUILayout.MinMaxSlider(new GUIContent("スケール範囲", "生成するHeightMapのスケール範囲を設定します"),
                     ref param.minLinearScale, ref param.maxLinearScale, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
 
+                bool guiEnableTemp = GUI.enabled;
                 GUI.enabled = false;
                 EditorGUILayout.FloatField(new GUIContent("最低値", "振幅の最低値を表示します"), param.minLinearScale);
                 EditorGUILayout.FloatField(new GUIContent("最高値", "振幅の最高値を表示します"), param.maxLinearScale);
                 EditorGUILayout.FloatField(new GUIContent("振幅", "振幅の値を表示します"), param.maxLinearScale - param.minLinearScale);
-                GUI.enabled = true;
+                GUI.enabled = guiEnableTemp;
             }
 
             if (param.octaves > 0 && param.maxLinearScale == ATGMathf.MaxTerrainHeight)
@@ -114,6 +126,11 @@ namespace AutoTerrainGenerator.Editors
                     //出力する
                     AssetDatabase.CreateAsset(outputParam, savePath);
                 }
+            }
+
+            if (inputProperty.objectReferenceValue != null)
+            {
+                GUI.enabled = true;
             }
         }
     }

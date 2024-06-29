@@ -11,25 +11,32 @@ namespace AutoTerrainGenerator.HeightMapGenerators
         private HeightMapGeneratorParam _param;
 
         [SerializeField]
-        private HeightMapGeneratorBase _inputParam;
+        private HeightMapGeneratorParam _inputParam;
 
         public override float[,] Generate(INoiseReader noiseReader, int size)
         {
-            Random.InitState(_param.seed);
+            //入力値がある場合はそちらを使用する
+            HeightMapGeneratorParam param = _param;
+            if (_inputParam != null)
+            {
+                param = _inputParam;
+            }
+
+            Random.InitState(param.seed);
             float xSeed = Random.Range(0f, noiseReader.GetNoiseFrequency());
             float ySeed = Random.Range(0f, noiseReader.GetNoiseFrequency());
 
             float[,] heightMap = new float[size, size];
 
-            float frequency = _param.frequency;
-            float amplitude = _param.amplitude;
+            float frequency = param.frequency;
+            float amplitude = param.amplitude;
 
-            if (_param.isLinearScaling)
+            if (param.isLinearScaling)
             {
                 amplitude = ATGMathf.MaxTerrainHeight;
             }
 
-            for (int i = 0; i <= _param.octaves; i++)
+            for (int i = 0; i <= param.octaves; i++)
             {
                 for (int x = 0; x < size; x++)
                 {
@@ -46,7 +53,7 @@ namespace AutoTerrainGenerator.HeightMapGenerators
             }
 
             //スケーリング
-            if(_param.isLinearScaling)
+            if(param.isLinearScaling)
             {
                 IEnumerable<float> heightEnum = heightMap.Cast<float>();
                 float minHeight = heightEnum.Min();
@@ -56,7 +63,7 @@ namespace AutoTerrainGenerator.HeightMapGenerators
                 {
                     for (int y = 0; y < heightMap.GetLength(1); y++)
                     {
-                        heightMap[x, y] = ATGMathf.LinearScaling(heightMap[x, y], minHeight, maxHeight, _param.minLinearScale, _param.maxLinearScale);
+                        heightMap[x, y] = ATGMathf.LinearScaling(heightMap[x, y], minHeight, maxHeight, param.minLinearScale, param.maxLinearScale);
                     }
                 }
             }

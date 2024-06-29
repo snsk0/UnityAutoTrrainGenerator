@@ -8,7 +8,7 @@ namespace AutoTerrainGenerator.Editors
 {
     internal static class SharedDefaultInspector
     {
-        internal static void Awake(SerializedObject serializedObject, Type type)
+        internal static void OnEnable(SerializedObject serializedObject, Type type)
         {
             serializedObject.Update();
 
@@ -46,7 +46,7 @@ namespace AutoTerrainGenerator.Editors
             serializedObject.ApplyModifiedProperties();
         }
 
-        internal static void OnDestroy(SerializedObject serializedObject, Type type) 
+        internal static void OnDisable(SerializedObject serializedObject, Type type) 
         {
             //シリアライズを実行
             HeightMapGeneratorParam param = serializedObject.FindProperty("_param").objectReferenceValue as HeightMapGeneratorParam;

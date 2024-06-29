@@ -7,14 +7,14 @@ namespace AutoTerrainGenerator.Editors
     [CustomEditor(typeof(GeneratorTurbulence))]
     public class GeneratorTurbulenceInspector : Editor
     {
-        private void Awake()
+        private void OnEnable()
         {
-            SharedDefaultInspector.Awake(serializedObject, GetType());
+            SharedDefaultInspector.OnEnable(serializedObject, GetType());
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
-            SharedDefaultInspector.OnDestroy(serializedObject, GetType());
+            SharedDefaultInspector.OnDisable(serializedObject, GetType());
         }
 
         public override void OnInspectorGUI()

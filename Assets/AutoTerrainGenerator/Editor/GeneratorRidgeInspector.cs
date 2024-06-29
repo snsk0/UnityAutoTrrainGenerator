@@ -9,12 +9,12 @@ namespace AutoTerrainGenerator.Editors
     {
         private void Awake()
         {
-            SharedDefaultInspector.Awake(serializedObject, GetType());
+            SharedDefaultInspector.OnEnable(serializedObject, GetType());
         }
 
         private void OnDestroy()
         {
-            SharedDefaultInspector.OnDestroy(serializedObject, GetType());
+            SharedDefaultInspector.OnDisable(serializedObject, GetType());
         }
 
         public override void OnInspectorGUI()

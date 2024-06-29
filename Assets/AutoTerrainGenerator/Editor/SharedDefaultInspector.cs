@@ -41,7 +41,7 @@ namespace AutoTerrainGenerator.Editors
             string assetPath = EditorUserSettings.GetConfigValue(type.Name + ".input");
             if (!string.IsNullOrEmpty(assetPath))
             {
-                serializedObject.FindProperty("_inputParam").objectReferenceValue = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorBase>(assetPath);
+                serializedObject.FindProperty("_inputParam").objectReferenceValue = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorParam>(assetPath);
             }
             serializedObject.ApplyModifiedProperties();
         }

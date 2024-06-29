@@ -3,11 +3,12 @@ using UnityEngine;
 using UnityEditor;
 using AutoTerrainGenerator.HeightMapGenerators;
 using AutoTerrainGenerator.Parameters;
+using AutoTerrainGenerator.Attributes;
 
 namespace AutoTerrainGenerator.Editors
 {
     [ATGCustomEditor(typeof(GeneratorByUnityPerlin))]
-    public class UnityPerlinInspector : GeneratorEditor
+    public class UnityPerlinInspector : Editor
     {
         public override void OnInspectorGUI()
         {

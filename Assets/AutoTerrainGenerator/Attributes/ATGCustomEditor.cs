@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace AutoTerrainGenerator
+namespace AutoTerrainGenerator.Attributes
 {
     public class ATGCustomEditor : Attribute
     {

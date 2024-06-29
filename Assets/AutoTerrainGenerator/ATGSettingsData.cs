@@ -36,7 +36,7 @@ namespace AutoTerrainGenerator
             {
                 if(generatorScript != null)
                 {
-                    HeightMapGeneratorBase generator = (HeightMapGeneratorBase)CreateInstance(generatorScript.GetClass());
+                    HeightMapGeneratorBase generator = CreateInstance(generatorScript.GetClass()) as HeightMapGeneratorBase;
                     heightMapGenerators.Add(generator);
                 }
             }

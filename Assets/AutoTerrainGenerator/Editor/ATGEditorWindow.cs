@@ -1,12 +1,12 @@
 #if UNITY_EDITOR
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using AutoTerrainGenerator.HeightMapGenerators;
 using AutoTerrainGenerator.Parameters;
-using System.Collections.Generic;
-using UnityEditor.EditorTools;
+using AutoTerrainGenerator.Attributes;
 
 namespace AutoTerrainGenerator.Editors
 {
@@ -37,7 +37,7 @@ namespace AutoTerrainGenerator.Editors
         private SerializedObject _serializedObject;
         private ATGWindowSettigs _windowSettings;
         private List<HeightMapGeneratorBase> _generators;
-        private Dictionary<HeightMapGeneratorBase, GeneratorEditor> _generatorToInspector;
+        private Dictionary<HeightMapGeneratorBase, Editor> _generatorToInspector;
 
         private HeightMapGeneratorParam _generatorData;
         private bool _canInputData => _inputGeneratorData == null;
@@ -96,24 +96,40 @@ namespace AutoTerrainGenerator.Editors
                 _generators = settingProvider.GetGenerators();
             }
 
-            //ATGCustomEditorのついたクラスを取得
-            _generatorToInspector = new Dictionary<HeightMapGeneratorBase, GeneratorEditor>();
-            foreach(Type type in TypeCache.GetTypesWithAttribute<ATGCustomEditor>())
-            {
-                ATGCustomEditor attributeType = type.GetCustomAttribute<ATGCustomEditor>();
+            //辞書を初期化
+            _generatorToInspector = new Dictionary<HeightMapGeneratorBase, Editor>();
 
-                //一致するものを格納
-                foreach (HeightMapGeneratorBase generator in _generators)
+            //Attributeが付いたクラスを一括取得
+            TypeCache.TypeCollection types = TypeCache.GetTypesWithAttribute<ATGCustomEditor>();
+
+            //generatorから一致するものがあるか検索
+            bool hasInspector = false;
+            foreach(HeightMapGeneratorBase generator in _generators)
+            {
+                hasInspector = false;
+
+                foreach(Type editorType in types)
                 {
-                    if (generator.GetType() == attributeType.inspectedType)
+                    Type targetType = editorType.GetCustomAttribute<ATGCustomEditor>().inspectedType;
+
+                    if(generator.GetType() == targetType)
                     {
                         //Editorを生成する
-                        GeneratorEditor editor = GeneratorEditor.CreateEditor(generator, type);
+                        Editor editor = Editor.CreateEditor(generator, editorType);
 
                         //紐づけて格納
                         _generatorToInspector.Add(generator, editor);
+
+                        hasInspector = true;
                         break;
                     }
+                }
+
+                //インスペクタ拡張が見つからなかった場合、通常のEditorを格納
+                if (!hasInspector)
+                {
+                    Editor editor = Editor.CreateEditor(generator);
+                    _generatorToInspector.Add(generator, editor);
                 }
             }
         }
@@ -168,62 +184,8 @@ namespace AutoTerrainGenerator.Editors
                         //アルゴリズムの一覧表示
                         _windowSettings.generatorIndex = EditorGUILayout.IntPopup(new GUIContent("アルゴリズム"), _windowSettings.generatorIndex, gUIContents.ToArray(), values.ToArray());
 
-                        //選択したindexの拡張を調べる
-                        HeightMapGeneratorBase selectedGenerator = _generators[_windowSettings.generatorIndex];
-                        if (_generatorToInspector.ContainsKey(selectedGenerator))
-                        {
-                            _generatorToInspector[selectedGenerator].OnInspectorGUI();
-                        }
-                        //拡張がない場合、SerializeFieldを全て表示する
-                        else
-                        {
-                            foreach (FieldInfo field in TypeCache.GetFieldsWithAttribute<SerializeField>())
-                            {
-                                //EditorGUILayout.PropertyField(_serializedObject.FindProperty(field.Name));
-                            }
-                        }
-
-                        /*
-                        _generatorData.seed = EditorGUILayout.IntField(new GUIContent("シード値", "シード値を設定します"), _generatorData.seed);
-
-                        _generatorData.frequency = EditorGUILayout.FloatField(new GUIContent("周波数", "使用するノイズの周波数を設定します"), _generatorData.frequency);
-                        MessageType type = MessageType.Info;
-                        if(_generatorData.frequency > 256)
-                        {
-                            type = MessageType.Warning;
-                        }
-                        EditorGUILayout.HelpBox("UnityEngine.Mathf.PerlinNoiseの周期は256なため\n256以上の数値にすると同様の地形が現れる可能性があります", type);
-
-                        _generatorData.isLinearScaling = EditorGUILayout.Toggle(new GUIContent("線形スケーリング", "線形スケーリングを有効化します"), 
-                            _generatorData.isLinearScaling);
-
-                        if (!_generatorData.isLinearScaling)
-                        {
-                            _generatorData.amplitude = EditorGUILayout.Slider(new GUIContent("振幅", "生成するHeightMapの振幅を設定します"),
-                                _generatorData.amplitude, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
-                        }
-                        else
-                        {
-                            EditorGUILayout.MinMaxSlider(new GUIContent("スケール範囲", "生成するHeightMapのスケール範囲を設定します"),
-                                ref _generatorData.minLinearScale, ref _generatorData.maxLinearScale, ATGMathf.MinTerrainHeight, ATGMathf.MaxTerrainHeight);
-
-                            GUI.enabled = false;
-                            EditorGUILayout.FloatField(new GUIContent("最低値", "振幅の最低値を表示します"), _generatorData.minLinearScale);
-                            EditorGUILayout.FloatField(new GUIContent("最高値", "振幅の最高値を表示します"), _generatorData.maxLinearScale);
-                            EditorGUILayout.FloatField(new GUIContent("振幅", "振幅の値を表示します"), _generatorData.maxLinearScale - _generatorData.minLinearScale);
-                            if (_canInputData)
-                            {
-                                GUI.enabled = true;
-                            }
-                        }
-
-                        if (_generatorData.octaves > 0 && _generatorData.maxLinearScale == ATGMathf.MaxTerrainHeight)
-                        {
-                            EditorGUILayout.HelpBox("オクターブを利用する場合、振幅を1未満に設定してください\n地形が正しく生成されません\n0.5が推奨されます", MessageType.Error);
-                        }
-
-                        _generatorData.octaves = EditorGUILayout.IntField(new GUIContent("オクターブ", "非整数ブラウン運動を利用してオクターブの数値の回数ノイズを重ねます"), _generatorData.octaves);
-                        */
+                        //選択したindexからEditorを呼び出す
+                        _generatorToInspector[_generators[_windowSettings.generatorIndex]].OnInspectorGUI();
                         break;
                 }
             }

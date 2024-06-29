@@ -110,19 +110,56 @@ namespace AutoTerrainGenerator.Editors
                 {
                     //リフレクションを使用してAttributeからターゲットのタイプを取得
                     CustomEditor attribute = editorType.GetCustomAttribute<CustomEditor>();
-                    FieldInfo fieldInfo = attribute.GetType().GetField("m_InspectedType", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                    Type targetType = (Type)fieldInfo.GetValue(attribute);
+                    FieldInfo InspectedTypeField = attribute.GetType().GetField("m_InspectedType", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    Type targetType = (Type)InspectedTypeField.GetValue(attribute);
 
-                    if (generator.GetType() == targetType)
+                    //リフレクションを使用して子を対象にするかを取得
+                    FieldInfo forChildsField = attribute.GetType().GetField("m_EditorForChildClasses", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    bool forChilds = (bool)forChildsField.GetValue(attribute);
+
+                    //子を対象にしない場合
+                    if (forChilds)
                     {
-                        //Editorを生成する
-                        Editor editor = Editor.CreateEditor(generator, editorType);
+                        if (generator.GetType() == targetType)
+                        {
+                            //Editorを生成する
+                            Editor editor = Editor.CreateEditor(generator, editorType);
 
-                        //紐づけて格納
-                        _generatorToInspector.Add(generator, editor);
+                            //すでにInspectorが生成されている場合上書きする
+                            if(_generatorToInspector.ContainsKey(generator))
+                            {
+                                _generatorToInspector[generator] = editor;
+                            }
+                            else
+                            {
+                                _generatorToInspector.Add(generator, editor);
+                            }
 
-                        hasInspector = true;
-                        break;
+                            hasInspector = true;
+                            break;
+                        }
+                    }
+                    //子を対象とする場合
+                    else
+                    {
+                        if (generator.GetType().IsSubclassOf(targetType))
+                        {
+                            //すでに紐づけられている場合成功として処理
+                            if (_generatorToInspector.ContainsKey(generator))
+                            {
+                                hasInspector = true;
+                                break;
+                            }
+
+                            //Editorを生成する
+                            Editor editor = Editor.CreateEditor(generator, editorType);
+
+                            //紐づけて格納
+                            _generatorToInspector.Add(generator, editor);
+
+                            hasInspector = true;
+                            break;
+                        }
                     }
                 }
 

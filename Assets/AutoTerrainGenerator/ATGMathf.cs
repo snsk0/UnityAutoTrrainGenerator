@@ -7,7 +7,6 @@ namespace AutoTerrainGenerator
         internal const int ResolutionBase = 2;
         internal const int MinResolutionExp = 5;
         internal const int MaxResolutionExp = 12;
-        internal const int ResolutionExpRange = MaxResolutionExp - MinResolutionExp + 1;
 
         internal const float MinTerrainHeight = 0f;
         internal const float MaxTerrainHeight = 1.0f;
@@ -25,11 +24,6 @@ namespace AutoTerrainGenerator
         internal static float LinearScaling(float value, float fromMinValue, float fromMaxValue, float toMinValue, float toMaxValue)
         {
             return toMinValue + ((value - fromMinValue) / (fromMaxValue - fromMinValue)) * (toMaxValue - toMinValue);
-        }
-
-        internal static float SignedPerlinNoise(float x, float y)
-        {
-            return (Mathf.PerlinNoise(x, y) - 0.5f) * 2;
         }
     }
 }

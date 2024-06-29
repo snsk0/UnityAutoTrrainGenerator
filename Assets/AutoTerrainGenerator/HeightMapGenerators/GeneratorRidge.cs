@@ -3,9 +3,9 @@ using System.Linq;
 using UnityEngine;
 using AutoTerrainGenerator.Parameters;
 
-namespace AutoTerrainGenerator.HeightMapGenerators 
+namespace AutoTerrainGenerator.HeightMapGenerators
 {
-    public class GeneratorFbm : HeightMapGeneratorBase
+    public class GeneratorRidge : HeightMapGeneratorBase
     {
         [SerializeField]
         private HeightMapGeneratorParam _param;
@@ -37,7 +37,9 @@ namespace AutoTerrainGenerator.HeightMapGenerators
                     {
                         var xvalue = (float)x / size * frequency + xSeed;
                         var yvalue = (float)y / size * frequency + ySeed;
-                        heightMap[x, y] += noiseReader.ReadNoise(xvalue, yvalue) * amplitude;
+                        float value = Mathf.Abs(noiseReader.ReadSignedNoise(xvalue, yvalue)) * amplitude;
+                        value = ATGMathf.RidgeOffset - value;
+                        heightMap[x, y] += value * value;
                     }
                 }
 
@@ -46,7 +48,7 @@ namespace AutoTerrainGenerator.HeightMapGenerators
             }
 
             //スケーリング
-            if(_param.isLinearScaling)
+            if (_param.isLinearScaling)
             {
                 IEnumerable<float> heightEnum = heightMap.Cast<float>();
                 float minHeight = heightEnum.Min();
@@ -60,7 +62,6 @@ namespace AutoTerrainGenerator.HeightMapGenerators
                     }
                 }
             }
-
             return heightMap;
         }
     }

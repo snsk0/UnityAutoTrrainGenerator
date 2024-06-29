@@ -4,8 +4,8 @@ using AutoTerrainGenerator.HeightMapGenerators;
 
 namespace AutoTerrainGenerator.Editors
 {
-    [CustomEditor(typeof(GeneratorFbm))]
-    public class GeneratorFbmInspector : Editor
+    [CustomEditor(typeof(GeneratorTurbulence))]
+    public class GeneratorTurbulenceInspector : Editor
     {
         private void Awake()
         {

@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace AutoTerrainGenerator.Editors 
 {
-    internal static class ATGSettingRegister
+    internal static class ATGSettingsRegister
     {
         private class ATGSettingsProvider : SettingsProvider
         {

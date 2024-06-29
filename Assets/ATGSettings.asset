@@ -12,4 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a4de0c9c71ec644b8292c7f27751df3, type: 3}
   m_Name: ATGSettings
   m_EditorClassIdentifier: 
-  _heightMapGenerators: []
+  _heightMapGenerators:
+  - {fileID: 11500000, guid: c4a84ef3c11b66e46b1b817a05626e66, type: 3}
+  - {fileID: 11500000, guid: 624a54db65723cd43b0b60b8ed81d320, type: 3}
+  - {fileID: 11500000, guid: 8656341fb20988c43adfceffdb49bae1, type: 3}

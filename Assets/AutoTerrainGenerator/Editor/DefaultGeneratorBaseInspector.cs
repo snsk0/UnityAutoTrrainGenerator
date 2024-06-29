@@ -1,18 +1,19 @@
 #if UNITY_EDITOR
-using System;
+using AutoTerrainGenerator.HeightMapGenerators;
 using AutoTerrainGenerator.Parameters;
 using UnityEditor;
 using UnityEngine;
 
 namespace AutoTerrainGenerator.Editors
 {
-    internal static class SharedDefaultInspector
+    [CustomEditor(typeof(DefaultGeneratorBase), true)]
+    public class DefaultGeneratorBaseInspector : Editor
     {
-        internal static void OnEnable(SerializedObject serializedObject, Type type)
+        private void OnEnable()
         {
             serializedObject.Update();
 
-            string paramJson = EditorUserSettings.GetConfigValue(type.Name);
+            string paramJson = EditorUserSettings.GetConfigValue(target.GetType().Name);
             SerializedProperty paramProperty = serializedObject.FindProperty("_param");
 
             //Jsonがある場合
@@ -20,7 +21,7 @@ namespace AutoTerrainGenerator.Editors
             if (!string.IsNullOrEmpty(paramJson))
             {
                 //デシリアライズを実行
-                HeightMapGeneratorParam param = ScriptableObject.CreateInstance<HeightMapGeneratorParam>();
+                HeightMapGeneratorParam param = CreateInstance<HeightMapGeneratorParam>();
                 JsonUtility.FromJsonOverwrite(paramJson, param);
 
                 //成功した場合
@@ -32,13 +33,13 @@ namespace AutoTerrainGenerator.Editors
             }
 
             //デシリアライズに失敗した場合生成する
-            if (!isDeserialized) 
+            if (!isDeserialized)
             {
-                paramProperty.objectReferenceValue = ScriptableObject.CreateInstance<HeightMapGeneratorParam>();
+                paramProperty.objectReferenceValue = CreateInstance<HeightMapGeneratorParam>();
             }
 
             //pathからアセットを読み込む
-            string assetPath = EditorUserSettings.GetConfigValue(type.Name + ".input");
+            string assetPath = EditorUserSettings.GetConfigValue(target.GetType().Name + ".input");
             if (!string.IsNullOrEmpty(assetPath))
             {
                 serializedObject.FindProperty("_inputParam").objectReferenceValue = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorParam>(assetPath);
@@ -46,19 +47,19 @@ namespace AutoTerrainGenerator.Editors
             serializedObject.ApplyModifiedProperties();
         }
 
-        internal static void OnDisable(SerializedObject serializedObject, Type type) 
+        private void OnDisable()
         {
             //シリアライズを実行
             HeightMapGeneratorParam param = serializedObject.FindProperty("_param").objectReferenceValue as HeightMapGeneratorParam;
-            EditorUserSettings.SetConfigValue(type.Name, JsonUtility.ToJson(param));
+            EditorUserSettings.SetConfigValue(target.GetType().Name, JsonUtility.ToJson(param));
 
             string assetPath = AssetDatabase.GetAssetPath(serializedObject.FindProperty("_inputParam").objectReferenceValue);
-            EditorUserSettings.SetConfigValue(type.Name + ".input", assetPath);
+            EditorUserSettings.SetConfigValue(target.GetType().Name + ".input", assetPath);
 
             serializedObject.Update();
         }
 
-        internal static void OnInspectorGUI(SerializedObject serializedObject)
+        public override void OnInspectorGUI ()
         {
             serializedObject.Update();
 
@@ -68,7 +69,7 @@ namespace AutoTerrainGenerator.Editors
             //設定値の読み込み
             SerializedProperty inputProperty = serializedObject.FindProperty("_inputParam");
             EditorGUILayout.PropertyField(inputProperty, new GUIContent("入力", "HeightMapParamを入力します"));
-            if(inputProperty.objectReferenceValue != null)
+            if (inputProperty.objectReferenceValue != null)
             {
                 GUI.enabled = false;
 

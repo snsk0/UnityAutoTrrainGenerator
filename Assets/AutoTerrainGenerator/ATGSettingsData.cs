@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -36,6 +35,7 @@ namespace AutoTerrainGenerator
             {
                 if(generatorScript != null)
                 {
+                    //Generatorƒf[ƒ^‚Ì“Ç‚İ‚İ
                     HeightMapGeneratorBase generator = CreateInstance(generatorScript.GetClass()) as HeightMapGeneratorBase;
                     heightMapGenerators.Add(generator);
                 }

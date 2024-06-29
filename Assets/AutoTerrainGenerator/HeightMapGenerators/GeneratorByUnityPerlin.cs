@@ -11,20 +11,18 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
         [SerializeField]
         private HeightMapGeneratorParam _param;
 
-        private void Awake()
+        private void OnEnable()
         {
             _param = CreateInstance<HeightMapGeneratorParam>();
         }
 
-        public override float[,] Generate()
+        public override float[,] Generate(INoiseReader noiseReader, int size)
         {
             Random.InitState(_param.seed);
             float xSeed = Random.Range(0f, PerlinNoiseFrequency);
             float ySeed = Random.Range(0f, PerlinNoiseFrequency);
 
-            int resolution = ATGMathf.GetResolution(_param.resolutionExp);
-
-            float[,] heightMap = new float[resolution, resolution];
+            float[,] heightMap = new float[size, size];
 
             float frequency = _param.frequency;
             float amplitude = _param.amplitude;
@@ -62,12 +60,12 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
 
             for (int i = 0; i <= _param.octaves; i++)
             {
-                for (int x = 0; x < resolution; x++)
+                for (int x = 0; x < size; x++)
                 {
-                    for (int y = 0; y < resolution; y++)
+                    for (int y = 0; y < size; y++)
                     {
-                        var xvalue = (float)x / resolution * frequency + xSeed;
-                        var yvalue = (float)y / resolution * frequency + ySeed;
+                        var xvalue = (float)x / size * frequency + xSeed;
+                        var yvalue = (float)y / size * frequency + ySeed;
                         heightMap[x, y] += noiseFunc.Invoke(xvalue, yvalue) * amplitude;
                     }
                 }

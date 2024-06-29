@@ -7,6 +7,7 @@ using UnityEditor;
 using AutoTerrainGenerator.HeightMapGenerators;
 using AutoTerrainGenerator.Parameters;
 using AutoTerrainGenerator.Attributes;
+using AutoTerrainGenerator.NoiseReaders;
 
 namespace AutoTerrainGenerator.Editors
 {
@@ -17,11 +18,14 @@ namespace AutoTerrainGenerator.Editors
         {
             //GUI
             public bool isFoldoutNoise;
-            public bool isFoldoutHeightMap;
+            public bool isFoldoutTerrain;
             public bool isFoldoutAsset;
 
             //アルゴリズム指定
             public int generatorIndex;
+
+            //テレインパラメータ
+            public TerrainParameters parameters;
 
             //アセット
             public bool isCreateAsset;
@@ -39,7 +43,6 @@ namespace AutoTerrainGenerator.Editors
         private List<HeightMapGeneratorBase> _generators;
         private Dictionary<HeightMapGeneratorBase, Editor> _generatorToInspector;
 
-        private HeightMapGeneratorParam _generatorData;
         private bool _canInputData => _inputGeneratorData == null;
 
         //TODO 実装
@@ -56,15 +59,11 @@ namespace AutoTerrainGenerator.Editors
         {
             //json取得
             string windowJson = EditorUserSettings.GetConfigValue(nameof(_windowSettings));
-            string generaterJson = EditorUserSettings.GetConfigValue(nameof(_generatorData));
 
             //デシリアライズ
-            if(!string.IsNullOrEmpty(windowJson) && ! string.IsNullOrEmpty(generaterJson)) 
+            if(!string.IsNullOrEmpty(windowJson)) 
             {
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowJson);
-
-                _generatorData = CreateInstance<HeightMapGeneratorParam>();
-                JsonUtility.FromJsonOverwrite(generaterJson, _generatorData);
 
                 string dataPath = EditorUserSettings.GetConfigValue(nameof(_inputGeneratorData));
                 if (!string.IsNullOrEmpty(dataPath))
@@ -77,13 +76,12 @@ namespace AutoTerrainGenerator.Editors
             {
                 _windowSettings = new ATGWindowSettigs();
                 _windowSettings.isFoldoutNoise = true;
-                _windowSettings.isFoldoutHeightMap = true;
+                _windowSettings.isFoldoutTerrain = true;
                 _windowSettings.isFoldoutAsset = true;
                 _windowSettings.isCreateAsset = true;
                 _windowSettings.assetPath = "Assets";
                 _windowSettings.assetName = "Terrain";
-                
-                _generatorData = CreateInstance<HeightMapGeneratorParam>();
+                _windowSettings.parameters = new TerrainParameters();
             }
 
             _serializedObject = new SerializedObject(this);
@@ -103,7 +101,7 @@ namespace AutoTerrainGenerator.Editors
             TypeCache.TypeCollection types = TypeCache.GetTypesWithAttribute<ATGCustomEditor>();
 
             //generatorから一致するものがあるか検索
-            bool hasInspector = false;
+            bool hasInspector;
             foreach(HeightMapGeneratorBase generator in _generators)
             {
                 hasInspector = false;
@@ -138,7 +136,6 @@ namespace AutoTerrainGenerator.Editors
         private void OnDisable()
         {
             EditorUserSettings.SetConfigValue(nameof(_windowSettings), JsonUtility.ToJson(_windowSettings));
-            EditorUserSettings.SetConfigValue(nameof(_generatorData), JsonUtility.ToJson(_generatorData));
 
             if(_inputGeneratorData != null)
             {
@@ -148,6 +145,12 @@ namespace AutoTerrainGenerator.Editors
             {
                 EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), string.Empty);
             }
+
+            //generatorを全て破棄する
+            foreach(HeightMapGeneratorBase generator in _generators)
+            {
+                DestroyImmediate(generator);
+            }
         }
 
         private void OnGUI()
@@ -155,54 +158,48 @@ namespace AutoTerrainGenerator.Editors
             _serializedObject.Update();
 
             //設定値の読み込み
+            /*
             EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_inputGeneratorData)), new GUIContent("設定入力"));
 
             if (!_canInputData)
             {
                 GUI.enabled = false;
             }
+            */
 
             _windowSettings.isFoldoutNoise = EditorGUILayout.Foldout(_windowSettings.isFoldoutNoise, "Noise");
             if(_windowSettings.isFoldoutNoise)
             {
-                _generatorData.noiseTypeIndex = EditorGUILayout.Popup(new GUIContent("ノイズ"), _generatorData.noiseTypeIndex, new[]
+                //アルゴリズムのGUIContentを作成する
+                List<GUIContent> gUIContents = new List<GUIContent>();
+                List<int> values = new List<int>();
+                foreach (HeightMapGeneratorBase generator in _generators)
                 {
-                    new GUIContent("UnityEngine.Mathf.PerlinNoise")
-                });
-
-                switch(_generatorData.noiseTypeIndex)
-                {
-                    case 0:
-                        //アルゴリズムのGUIContentを作成する
-                        List<GUIContent> gUIContents = new List<GUIContent>();
-                        List<int> values = new List<int>();
-                        foreach(HeightMapGeneratorBase generator in _generators)
-                        {
-                            gUIContents.Add(new GUIContent(generator.GetType().ToString()));
-                        }
-
-                        //アルゴリズムの一覧表示
-                        _windowSettings.generatorIndex = EditorGUILayout.IntPopup(new GUIContent("アルゴリズム"), _windowSettings.generatorIndex, gUIContents.ToArray(), values.ToArray());
-
-                        //選択したindexからEditorを呼び出す
-                        _generatorToInspector[_generators[_windowSettings.generatorIndex]].OnInspectorGUI();
-                        break;
+                    gUIContents.Add(new GUIContent(generator.GetType().ToString()));
                 }
+
+                //アルゴリズムの一覧表示
+                _windowSettings.generatorIndex = EditorGUILayout.IntPopup(new GUIContent("アルゴリズム"), _windowSettings.generatorIndex, gUIContents.ToArray(), values.ToArray());
+
+                //選択したindexからEditorを呼び出す
+                _generatorToInspector[_generators[_windowSettings.generatorIndex]].OnInspectorGUI();
             }
 
-            _windowSettings.isFoldoutHeightMap = EditorGUILayout.Foldout(_windowSettings.isFoldoutHeightMap, "HeightMap");
-            if (_windowSettings.isFoldoutHeightMap)
+            
+            _windowSettings.isFoldoutTerrain = EditorGUILayout.Foldout(_windowSettings.isFoldoutTerrain, "Terrain");
+            if (_windowSettings.isFoldoutTerrain)
             {
-                _generatorData.scale.x = EditorGUILayout.FloatField(new GUIContent("横幅", "HeightMapの横幅を設定します"), _generatorData.scale.x);
-                _generatorData.scale.z = EditorGUILayout.FloatField(new GUIContent("奥行", "HeightMapの奥行を設定します"), _generatorData.scale.z);
-                _generatorData.scale.y = EditorGUILayout.FloatField(new GUIContent("高さ", "HeightMapの高さを設定します"), _generatorData.scale.y);
+                TerrainParameters parameters = _windowSettings.parameters;
+                parameters.scale.x = EditorGUILayout.FloatField(new GUIContent("横幅", "HeightMapの横幅を設定します"), parameters.scale.x);
+                parameters.scale.z = EditorGUILayout.FloatField(new GUIContent("奥行", "HeightMapの奥行を設定します"), parameters.scale.z);
+                parameters.scale.y = EditorGUILayout.FloatField(new GUIContent("高さ", "HeightMapの高さを設定します"), parameters.scale.y);
 
                 int[] resolutionExpArray = new int[ATGMathf.ResolutionExpRange];
                 for(int i = 0; i < ATGMathf.ResolutionExpRange; i++)
                 {
                     resolutionExpArray[i] = i + ATGMathf.MinResolutionExp;
                 }
-                _generatorData.resolutionExp = EditorGUILayout.IntPopup(new GUIContent("解像度", "HeightMapの解像度を設定します"), _generatorData.resolutionExp, 
+                parameters.resolutionExp = EditorGUILayout.IntPopup(new GUIContent("解像度", "HeightMapの解像度を設定します"), parameters.resolutionExp, 
                     new[]
                 {
                     new GUIContent("33×33"),
@@ -257,7 +254,7 @@ namespace AutoTerrainGenerator.Editors
             //Generatorの入力があった場合反映する
             if (_inputGeneratorData != null)
             {
-                _generatorData = Instantiate(_inputGeneratorData);
+                //_generatorData = Instantiate(_inputGeneratorData);
             }
             GUI.enabled = true;
 
@@ -265,13 +262,13 @@ namespace AutoTerrainGenerator.Editors
             {
                 //Dataをコピーして渡す
                 HeightMapGeneratorBase generator = new GeneratorByUnityPerlin();
-                float[,] heightMap = generator.Generate();
+                float[,] heightMap = generator.Generate(new UnityPerlinNoise(), _windowSettings.parameters.resolution);
 
-                TerrainData data = TerrainGenerator.Generate(heightMap, _generatorData.scale);
+                //TerrainData data = TerrainGenerator.Generate(heightMap, _generatorData.scale);
 
                 if (_windowSettings.isCreateAsset)
                 {
-                    AssetDatabase.CreateAsset(data, _windowSettings.assetPath + "/" + _windowSettings.assetName + ".asset");
+                    //AssetDatabase.CreateAsset(data, _windowSettings.assetPath + "/" + _windowSettings.assetName + ".asset");
                 }
             }
 
@@ -281,10 +278,10 @@ namespace AutoTerrainGenerator.Editors
                 if(!string.IsNullOrEmpty(savePath)) 
                 {
                     //値をコピーする
-                    HeightMapGeneratorParam outputGeneratorData = Instantiate(_generatorData);
+                    //HeightMapGeneratorParam outputGeneratorData = Instantiate(_generatorData);
 
                     //出力する
-                    AssetDatabase.CreateAsset(outputGeneratorData, savePath);
+                    //AssetDatabase.CreateAsset(outputGeneratorData, savePath);
                 }
             }
         }

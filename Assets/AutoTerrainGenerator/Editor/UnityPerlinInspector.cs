@@ -3,11 +3,10 @@ using UnityEngine;
 using UnityEditor;
 using AutoTerrainGenerator.HeightMapGenerators;
 using AutoTerrainGenerator.Parameters;
-using AutoTerrainGenerator.Attributes;
 
 namespace AutoTerrainGenerator.Editors
 {
-    [ATGCustomEditor(typeof(GeneratorByUnityPerlin))]
+    [CustomEditor(typeof(GeneratorByUnityPerlin))]
     public class UnityPerlinInspector : Editor
     {
         public override void OnInspectorGUI()
@@ -54,6 +53,19 @@ namespace AutoTerrainGenerator.Editors
             param.octaves = EditorGUILayout.IntField(new GUIContent("オクターブ", "非整数ブラウン運動を利用してオクターブの数値の回数ノイズを重ねます"), param.octaves);
 
             serializedObject.ApplyModifiedProperties();
+
+            if (GUILayout.Button(new GUIContent("設定値を出力する", "設定値をアセットファイルに保存します")))
+            {
+                string savePath = EditorUtility.SaveFilePanelInProject("Save", "parameters", "asset", "");
+                if (!string.IsNullOrEmpty(savePath))
+                {
+                    //値をコピーする
+                    HeightMapGeneratorParam outputParam = Instantiate(param);
+
+                    //出力する
+                    AssetDatabase.CreateAsset(outputParam, savePath);
+                }
+            }
         }
     }
 }

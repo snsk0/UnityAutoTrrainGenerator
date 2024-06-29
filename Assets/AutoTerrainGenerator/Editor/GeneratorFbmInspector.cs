@@ -6,9 +6,46 @@ using AutoTerrainGenerator.Parameters;
 
 namespace AutoTerrainGenerator.Editors
 {
-    [CustomEditor(typeof(GeneratorByUnityPerlin))]
-    public class UnityPerlinInspector : Editor
+    [CustomEditor(typeof(GeneratorFbm))]
+    public class GeneratorFbmInspector : Editor
     {
+        private void Awake()
+        {
+            serializedObject.Update();
+
+            string paramJson = EditorUserSettings.GetConfigValue(nameof(GeneratorFbmInspector));
+            SerializedProperty paramProperty = serializedObject.FindProperty("_param");
+
+            //Jsonがある場合
+            if (!string.IsNullOrEmpty(paramJson))
+            {
+                //デシリアライズを実行
+                HeightMapGeneratorParam param = CreateInstance<HeightMapGeneratorParam>();
+                JsonUtility.FromJsonOverwrite(paramJson, param);
+
+                //成功した場合終了する
+                if (param != null)
+                {
+                    paramProperty.objectReferenceValue = param;
+                    serializedObject.ApplyModifiedProperties();
+                    return;
+                }
+            }
+
+            //デシリアライズに失敗した場合生成する
+            paramProperty.objectReferenceValue = CreateInstance<HeightMapGeneratorBase>();
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        private void OnDestroy()
+        {
+            //シリアライズを実行
+            HeightMapGeneratorParam param = serializedObject.FindProperty("_param").objectReferenceValue as HeightMapGeneratorParam;
+            EditorUserSettings.SetConfigValue(nameof(GeneratorFbmInspector), JsonUtility.ToJson(param));
+
+            serializedObject.Update();
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();

@@ -33,10 +33,6 @@ namespace AutoTerrainGenerator.Editors
             public string assetName;
         }
 
-        //入力
-        [SerializeField]
-        private HeightMapGeneratorParam _inputGeneratorData;
-
         //window情報
         private SerializedObject _serializedObject;
         private ATGWindowSettigs _windowSettings;
@@ -64,12 +60,6 @@ namespace AutoTerrainGenerator.Editors
             if(!string.IsNullOrEmpty(windowJson)) 
             {
                 _windowSettings = JsonUtility.FromJson<ATGWindowSettigs>(windowJson);
-
-                string dataPath = EditorUserSettings.GetConfigValue(nameof(_inputGeneratorData));
-                if (!string.IsNullOrEmpty(dataPath))
-                {
-                    _inputGeneratorData = AssetDatabase.LoadAssetAtPath<HeightMapGeneratorParam>(dataPath);
-                }
             }
             //初期化処理
             else
@@ -158,19 +148,14 @@ namespace AutoTerrainGenerator.Editors
                 EditorUserSettings.SetConfigValue(generator.GetType().Name, JsonUtility.ToJson(generator));
             }
 
-            /*
-            if(_inputGeneratorData != null)
+            //Editorを先に全て破棄する
+            foreach(Editor editor in _generatorToInspector.Values)
             {
-                EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), AssetDatabase.GetAssetPath(_inputGeneratorData));
+                DestroyImmediate(editor);
             }
-            else
-            {
-                EditorUserSettings.SetConfigValue(nameof(_inputGeneratorData), string.Empty);
-            }
-            */
 
-            //generatorを全て破棄する
-            foreach(HeightMapGeneratorBase generator in _generators)
+            //generatorをEditoの後に全て破棄する
+            foreach (HeightMapGeneratorBase generator in _generators)
             {
                 DestroyImmediate(generator);
             }
@@ -271,17 +256,10 @@ namespace AutoTerrainGenerator.Editors
             //更新
             _serializedObject.ApplyModifiedProperties();
 
-            //Generatorの入力があった場合反映する
-            if (_inputGeneratorData != null)
-            {
-                //_generatorData = Instantiate(_inputGeneratorData);
-            }
-            GUI.enabled = true;
-
             if (GUILayout.Button(new GUIContent("テレインを生成する", "設定値からテレインを生成します")))
             {
                 //Dataをコピーして渡す
-                HeightMapGeneratorBase generator = new GeneratorByUnityPerlin();
+                HeightMapGeneratorBase generator = new GeneratorFbm();
                 float[,] heightMap = generator.Generate(new UnityPerlinNoise(), _windowSettings.parameters.resolution);
 
                 //TerrainData data = TerrainGenerator.Generate(heightMap, _generatorData.scale);

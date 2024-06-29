@@ -4,17 +4,12 @@ using UnityEngine;
 using AutoTerrainGenerator.Parameters;
 
 namespace AutoTerrainGenerator.HeightMapGenerators {
-    internal class GeneratorByUnityPerlin : HeightMapGeneratorBase
+    internal class GeneratorFbm : HeightMapGeneratorBase
     {
         private const float PerlinNoiseFrequency = 256f;
 
         [SerializeField]
         private HeightMapGeneratorParam _param;
-
-        private void OnEnable()
-        {
-            _param = CreateInstance<HeightMapGeneratorParam>();
-        }
 
         public override float[,] Generate(INoiseReader noiseReader, int size)
         {
@@ -26,8 +21,6 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
 
             float frequency = _param.frequency;
             float amplitude = _param.amplitude;
-
-            System.Func<float, float, float> noiseFunc = null;
             /*
             switch (data.generateType)
             {
@@ -51,8 +44,6 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
                     };
                     break;
             }*/
-            noiseFunc = Mathf.PerlinNoise;
-
             if (_param.isLinearScaling)
             {
                 amplitude = ATGMathf.MaxTerrainHeight;
@@ -66,7 +57,7 @@ namespace AutoTerrainGenerator.HeightMapGenerators {
                     {
                         var xvalue = (float)x / size * frequency + xSeed;
                         var yvalue = (float)y / size * frequency + ySeed;
-                        heightMap[x, y] += noiseFunc.Invoke(xvalue, yvalue) * amplitude;
+                        heightMap[x, y] += noiseReader.ReadNoise(xvalue, yvalue) * amplitude;
                     }
                 }
 

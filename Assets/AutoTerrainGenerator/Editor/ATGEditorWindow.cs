@@ -17,37 +17,37 @@ namespace AutoTerrainGenerator.Editors
         private static List<HeightMapGeneratorBase> _generators;
         private static Dictionary<HeightMapGeneratorBase, Editor> _generatorToInspector;
 
-        //強制初期化
+        //起動時初期化
         [InitializeOnLoadMethod]
         private static void InitializedOnLoad()
         {
             //コンパイル前に破棄とセーブ
             AssemblyReloadEvents.beforeAssemblyReload += () =>
             {
-                ReleaseData();
+                SaveGeneratorData();
             };
 
-            //コンパイル後にデータを取得
-            AssemblyReloadEvents.afterAssemblyReload += () =>
+            //コンパイル後に読み込み
+            AssemblyReloadEvents.beforeAssemblyReload += () =>
             {
-                LoadData();
+                LoadGeneratorData();
             };
 
             //データの保存とEditor破棄
             EditorSceneManager.sceneOpening += (s, t) =>
             {
-                ReleaseData();
+                SaveGeneratorData();
             };
 
             //データのロードと生成
             EditorSceneManager.sceneOpened += (s, t) =>
             {
-                LoadData();
+                LoadGeneratorData();
             };
         }
 
         //Secene変更後
-        private static void LoadData()
+        private static void LoadGeneratorData()
         {
             //settingProviderを取得
             UnityEngine.Object providerObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(IATGSettingProvider.SettingsPath);
@@ -125,7 +125,16 @@ namespace AutoTerrainGenerator.Editors
                             }
 
                             //Editorを生成する
+                            if(generator == null)
+                            {
+                                Debug.Log("generatorNULLError");
+                            }
                             Editor editor = Editor.CreateEditor(generator, editorType);
+
+                            if (editor.serializedObject.targetObject)
+                            {
+                                Debug.Log("NULLTARGET");
+                            }
 
                             //紐づけて格納
                             _generatorToInspector.Add(generator, editor);
@@ -146,7 +155,7 @@ namespace AutoTerrainGenerator.Editors
         }
 
         //データ破棄とセーブ
-        private static void ReleaseData()
+        private static void SaveGeneratorData()
         {
             //読み込んでいるgeneratorをserializeして格納
             foreach (HeightMapGeneratorBase generator in _generators)
@@ -204,7 +213,10 @@ namespace AutoTerrainGenerator.Editors
         //デシリアライズして設定取得
         private void OnEnable()
         {
-            //json取得
+            //データをロードする(起動時のコンパイル後用)
+            LoadGeneratorData();
+
+            //Jasonを取得
             string windowJson = EditorUserSettings.GetConfigValue(nameof(_windowSettings));
 
             //デシリアライズ
@@ -241,6 +253,9 @@ namespace AutoTerrainGenerator.Editors
         //シリアライズして保存する
         private void OnDisable()
         {
+            //Windowを閉じたときも実行する
+            SaveGeneratorData();
+
             EditorUserSettings.SetConfigValue(nameof(_windowSettings), JsonUtility.ToJson(_windowSettings));
         }
 

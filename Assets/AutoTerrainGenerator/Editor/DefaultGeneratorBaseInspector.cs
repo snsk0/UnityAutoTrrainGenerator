@@ -9,6 +9,7 @@ namespace AutoTerrainGenerator.Editors
     [CustomEditor(typeof(DefaultGeneratorBase), true)]
     public class DefaultGeneratorBaseInspector : Editor
     {
+        //OnEnableにするとアセットとしてEnableになった場合にエラーが起こる
         protected virtual void Awake()
         {
             serializedObject.Update();
@@ -61,6 +62,11 @@ namespace AutoTerrainGenerator.Editors
 
         public override void OnInspectorGUI ()
         {
+            if(target == null)
+            {
+                Debug.Log("targetNULL");
+            }
+
             serializedObject.Update();
 
             //パラメータオブジェクトを取得

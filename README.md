@@ -52,4 +52,5 @@
 - Sample04は、Generatorに対してEditor拡張でWindowに表示されるパラメータを示した例です<br>
   ※window上に表示されるEditor拡張については、UnityのInspectorのカスタマイズと全く同じ手段で可能です<br>
   そのため、[CustomEditor]を使用し、Editorクラスを拡張してください<br>
+
 ※上記内容は24/06/30時点のものです

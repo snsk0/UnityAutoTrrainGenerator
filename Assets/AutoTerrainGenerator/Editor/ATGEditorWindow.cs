@@ -102,11 +102,6 @@ namespace AutoTerrainGenerator.Editors
             bool hasInspector;
             foreach(HeightMapGeneratorBase generator in _generators)
             {
-                if(generator == null)
-                {
-                    Debug.LogWarning("BreakObject");
-                    break;
-                }
                 hasInspector = false;
 
                 foreach(Type editorType in editorTypes)

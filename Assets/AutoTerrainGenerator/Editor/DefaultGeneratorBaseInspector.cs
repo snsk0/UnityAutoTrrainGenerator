@@ -122,7 +122,7 @@ namespace AutoTerrainGenerator.Editors
                 if (!string.IsNullOrEmpty(savePath))
                 {
                     //値をコピーする
-                    HeightMapGeneratorParam outputParam = UnityEngine.Object.Instantiate(param);
+                    HeightMapGeneratorParam outputParam = Instantiate(param);
 
                     //出力する
                     AssetDatabase.CreateAsset(outputParam, savePath);

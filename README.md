@@ -49,6 +49,7 @@
 ![ATG_3](https://github.com/snsk0/ImageRepository/blob/main/ATG_3.png)<br>
 
 #### 他各種サンプルについて
+- 各種サンプルはシード値をTime.timeから決めています
 - Sample02は、GeneratorのパラメータをScriptableObjectにまとめた例です
 - Sample03は、Generatorのパラメータを自作クラスにまとめた例です<br>
   ※この際、自作クラスをWindowに表示するには、自作クラスに[System.Serializable]を付与することを忘れないでください

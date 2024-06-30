@@ -9,7 +9,7 @@ namespace AutoTerrainGenerator.Editors
     [CustomEditor(typeof(DefaultGeneratorBase), true)]
     public class DefaultGeneratorBaseInspector : Editor
     {
-        protected virtual void OnEnable()
+        protected virtual void Awake()
         {
             serializedObject.Update();
 
@@ -47,7 +47,7 @@ namespace AutoTerrainGenerator.Editors
             serializedObject.ApplyModifiedProperties();
         }
 
-        protected virtual void OnDisable()
+        protected virtual void OnDestroy()
         {
             //シリアライズを実行
             HeightMapGeneratorParam param = serializedObject.FindProperty("_param").objectReferenceValue as HeightMapGeneratorParam;

@@ -48,7 +48,7 @@
 5. AutoTerrainGeneratorを開きなおし、アルゴリズムから作成したスクリプトを選択します
 ![ATG_3](https://github.com/snsk0/ImageRepository/blob/main/ATG_3.png)<br>
 
-### 他各種サンプルについて
+#### 他各種サンプルについて
 - Sample02は、GeneratorのパラメータをScriptableObjectにまとめた例です
 - Sample03は、Generatorのパラメータを自作クラスにまとめた例です<br>
   ※この際、自作クラスをWindowに表示するには、自作クラスに[System.Serializable]を付与することを忘れないでください

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -7,10 +8,15 @@ namespace AutoTerrainGenerator
     internal class ATGSettingsData : ScriptableObject, IATGSettingProvider
     {
         public const string HeightMapGeneratorsName = "_heightMapGenerators";
+        public const string NoiseReadersName = "_noiseReaders";
 
         [SerializeField]
         private List<MonoScript> _heightMapGenerators;
         public List<MonoScript> heightMapGenerators => _heightMapGenerators;
+
+        [SerializeField]
+        private List<MonoScript> _noiseReaders;
+        public List<MonoScript> noiseReader => _noiseReaders;
 
         internal static ATGSettingsData GetOrCreateData()
         {
@@ -21,6 +27,7 @@ namespace AutoTerrainGenerator
             {
                 settingData = CreateInstance<ATGSettingsData>();
                 settingData._heightMapGenerators = new List<MonoScript>();
+                settingData._noiseReaders = new List<MonoScript>();
                 AssetDatabase.CreateAsset(settingData, IATGSettingProvider.SettingsPath);
             }
 
@@ -41,6 +48,22 @@ namespace AutoTerrainGenerator
                 }
             }
             return heightMapGenerators;
+        }
+
+        public List<INoiseReader> GetNoiseReaders()
+        {
+            List<INoiseReader> noiseReaders = new List<INoiseReader>();
+
+            foreach (MonoScript noiseScript in _noiseReaders)
+            {
+                if (noiseScript != null)
+                {
+                    //GeneratorÉfÅ[É^ÇÃì«Ç›çûÇ›
+                    INoiseReader noiseReader = Activator.CreateInstance(noiseScript.GetClass()) as INoiseReader;
+                    noiseReaders.Add(noiseReader);
+                }
+            }
+            return noiseReaders;
         }
     }
 }

@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine.UIElements;
 
@@ -28,9 +29,38 @@ namespace AutoTerrainGenerator.Editors
             {
                 _serializedObject.Update();
 
-                EditorGUILayout.PropertyField(_serializedObject.FindProperty(ATGSettingsData.HeightMapGeneratorsName));
+                //NoiseReaderを処理
+                EditorGUILayout.PropertyField(_serializedObject.FindProperty(ATGSettingsData.NoiseReadersName));
+                for (int i = 0; i < _settingsData.noiseReader.Count; i++)
+                {
+                    MonoScript script = _settingsData.noiseReader[i];
+                    if (script == null)
+                    {
+                        break;
+                    }
 
-                //class一覧を取得し、Generator以外nullを代入する
+                    Type scriptType = script.GetClass();
+
+                    //クラスがない場合(enumのみなど)
+                    if (scriptType == null)
+                    {
+                        _settingsData.heightMapGenerators[i] = null;
+                        break;
+                    }
+
+                    //インターフェースが実装されているかを確認
+                    if (!scriptType.GetInterfaces().Contains(typeof(INoiseReader)))
+                    {
+                        _settingsData.noiseReader[i] = null;
+                    }
+                    else
+                    {
+                        _settingsData.noiseReader[i] = script;
+                    }
+                }
+
+                //Genenratorを処理
+                EditorGUILayout.PropertyField(_serializedObject.FindProperty(ATGSettingsData.HeightMapGeneratorsName));
                 for(int i = 0; i < _settingsData.heightMapGenerators.Count; i++)
                 {
                     MonoScript script = _settingsData.heightMapGenerators[i];

@@ -5,5 +5,6 @@ namespace AutoTerrainGenerator {
     {
         public const string SettingsPath = "Assets/ATGSettings.asset";
         List<HeightMapGeneratorBase> GetGenerators();
+        List<INoiseReader> GetNoiseReaders();
     }
 }

@@ -19,7 +19,8 @@ namespace AutoTerrainGenerator.Editors
             public bool isFoldoutTerrain;
             public bool isFoldoutAsset;
 
-            //アルゴリズム指定
+            //インデックス
+            public int noiseReaderIndex;
             public int generatorIndex;
 
             //テレインパラメータ
@@ -34,6 +35,7 @@ namespace AutoTerrainGenerator.Editors
         //window情報
         private SerializedObject _serializedObject;
         private ATGWindowSettigs _windowSettings;
+        private List<INoiseReader> _noiseReaders;
         private List<HeightMapGeneratorBase> _generators;
         private Dictionary<HeightMapGeneratorBase, Editor> _generatorToInspector;
 
@@ -69,16 +71,17 @@ namespace AutoTerrainGenerator.Editors
 
             _serializedObject = new SerializedObject(this);
 
-            //settingProviderからアルゴリズムを取得
+            //settingProviderを取得
             UnityEngine.Object providerObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(IATGSettingProvider.SettingsPath);
             if(providerObject != null)
             {
                 IATGSettingProvider settingProvider = (IATGSettingProvider)Instantiate(providerObject);
 
-                //インスタンスを取得する
-                _generators = settingProvider.GetGenerators();
+                //NoiseReadersを取得する
+                _noiseReaders = settingProvider.GetNoiseReaders();
 
                 //クラス名をキーにgeneratorInstanceを取得、できたら情報を上書き
+                _generators = settingProvider.GetGenerators();
                 foreach(HeightMapGeneratorBase generator in _generators)
                 {
                     string generatorJson = EditorUserSettings.GetConfigValue(generator.GetType().Name);
@@ -200,11 +203,26 @@ namespace AutoTerrainGenerator.Editors
         {
             _serializedObject.Update();
 
+            //ノイズGUIContentを作成する
+            List<GUIContent> gUIContents = new List<GUIContent>();
+            foreach (INoiseReader noiseReader in _noiseReaders)
+            {
+                gUIContents.Add(new GUIContent(noiseReader.GetType().ToString()));
+            }
+
+            //ノイズ一覧を表示
+            _windowSettings.noiseReaderIndex = EditorGUILayout.IntPopup(
+                new GUIContent("ノイズ"),
+                _windowSettings.noiseReaderIndex,
+                gUIContents.ToArray(),
+                Enumerable.Range(0, gUIContents.Count).ToArray());
+
+            //HeightMap関連項目
             _windowSettings.isFoldoutHeightMapGenerator = EditorGUILayout.Foldout(_windowSettings.isFoldoutHeightMapGenerator, "HeightMapGenerator");
             if(_windowSettings.isFoldoutHeightMapGenerator)
             {
                 //アルゴリズムのGUIContentを作成する
-                List<GUIContent> gUIContents = new List<GUIContent>();
+                gUIContents.Clear();
                 foreach (HeightMapGeneratorBase generator in _generators)
                 {
                     gUIContents.Add(new GUIContent(generator.GetType().ToString()));
@@ -221,6 +239,7 @@ namespace AutoTerrainGenerator.Editors
                 _generatorToInspector[_generators[_windowSettings.generatorIndex]].OnInspectorGUI();
             }
 
+            //Terrain関連項目
             _windowSettings.isFoldoutTerrain = EditorGUILayout.Foldout(_windowSettings.isFoldoutTerrain, "Terrain");
             if (_windowSettings.isFoldoutTerrain)
             {
@@ -243,6 +262,7 @@ namespace AutoTerrainGenerator.Editors
                 }, Enumerable.Range(ATGMathf.MinResolutionExp, ATGMathf.MaxResolutionExp).ToArray());
             }
 
+            //Asset関連項目
             _windowSettings.isFoldoutAsset = EditorGUILayout.Foldout(_windowSettings.isFoldoutAsset, "Assets");
             if (_windowSettings.isFoldoutAsset)
             {
